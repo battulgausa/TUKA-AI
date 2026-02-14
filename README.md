@@ -1,114 +1,128 @@
-# TUKA-AI.
-https://github.com/NVIDIA/personaplex.git
-git@github.com:NVIDIA/personaplex.git
-gh repo clone NVIDIA/personaplex
-ff29e42d6b729253cb91f0c1cbdfa2adf1dd6094
-.github/ISSUE_TEMPLATE/bug.yml
-.github/ISSUE_TEMPLATE/question.yml
-.gitignore
-LICENSE-MIT
-README.md
-assets/architecture_diagram.png
-assets/test/input_assistant.wav
-assets/test/input_service.wav
-assets/test/prompt_service.txt
-client/.env.local
-client/.eslinrc.json
-client/.nvmrc
-client/.prettierignore
-client/.prettierrc.json
-client/.nvmrc
-client/.nvmrc
-client/.prettierignore
-client/.prettierrc.json
-client/Dockerfile
-client/LICENSE
-client/README.md
-client/index.html
-client/package-lock.json
-client/package.json
-client/postcss.config.js
-client/public/assets/decoderWorker.min.js
-client/public/assets/decoderWorker.min.wasm
-client/public/assets/favicon-16x16.png
-client/public/assets/favicon-32x32.png
-client/public/assets/favicon.ico
-client/src/app.tsx
-client/src/audio-processor.ts
-client/src/components/Button/Button.tsx
-client/src/components/Input/Input.tsx
-client/src/decoder/decoderWorker.ts
-client/src/env.ts
-client/src/index.css
-client/src/modules.d.ts
-client/src/pages/Conversation/Conversation.tsx
-client/src/pages/Conversation/MediaContext.ts
-client/src/pages/Conversation/canvas-logo-black.png
-client/src/pages/Conversation/canvas-logo.png
-client/src/pages/Conversation/components/AudioVisualizer/AudioVisualizer.tsx
-client/src/pages/Conversation/components/AudioVisualizer/ClientVisualizer.tsx
-client/src/pages/Conversation/components/AudioVisualizer/ServerVisualizer.tsx
-client/src/pages/Conversation/components/Controls/Controls.tsx
-client/src/pages/Conversation/components/ModelParams/ModelParams.tsx
-client/src/pages/Conversation/components/ServerAudio/ServerAudio.tsx
-client/src/pages/Conversation/components/ServerAudio/ServerAudioStats.tsx
-client/src/pages/Conversation/components/ServerInfo/ServerInfo.tsx
-client/src/pages/Conversation/components/TextDisplay/TextDisplay.tsx
-client/src/pages/Conversation/components/TextDisplay/TextDisplayStats.tsx
-client/src/pages/Conversation/components/UserAudio/UserAudio.tsx
-client/src/pages/Conversation/components/UserAudio/UserAudioStats.tsx
-client/src/pages/Conversation/getMimeType.ts
-client/src/pages/Conversation/hooks/audioUtils.ts
-client/src/pages/Conversation/hooks/useLocalStorage.ts
-client/src/pages/Conversation/hooks/useModelParams.ts
-client/src/pages/Conversation/hooks/useServerInfo.ts
-client/src/pages/Conversation/hooks/useServerText.ts
-client/src/pages/Conversation/hooks/useSocket.ts
-client/src/pages/Conversation/hooks/useSystemTheme.ts
-client/src/pages/Conversation/hooks/useUserAudio.ts
-client/src/pages/Queue/Queue.tsx
-client/src/pages/Queue/api/client.ts
-client/src/pages/Queue/api/errors/api_error.ts
-client/src/pages/Queue/api/validators.ts
-client/src/pages/Queue/api/errors/response_error.ts
-client/src/pages/Queue/hooks/useUserEmail.ts
-client/src/pages/Conversation/hooks/useServerAudio.ts
-client/src/protocol/encoder.ts
-client/src/protocol/testMessages.ts
-client/src/protocol/types.ts
-client/tailwind.config.js
-client/tsconfig.json
-client/vite.config.ts
-moshi/LICENSE.audiocraft
-moshi/LICENSE.moshi
-moshi/MANIFEST.in
-moshi/moshi/__init__.py
-moshi/moshi/client_utils.py
-moshi/moshi/models/__init__.py
-moshi/moshi/models/compression.py
-moshi/moshi/models/lm.py
-moshi/moshi/models/loaders.py
-moshi/moshi/modules/__init__.py
-moshi/moshi/modules/conv.py
-moshi/moshi/modules/gating.py
-moshi/moshi/modules/resample.py
-moshi/moshi/modules/rope.py
-moshi/moshi/modules/seanet.py
-moshi/moshi/modules/streaming.py
-moshi/moshi/modules/transformer.py
-moshi/moshi/offline.py
-moshi/moshi/quantization/__init__.py
-moshi/moshi/quantization/base.py
-moshi/moshi/quantization/core_vq.py
-moshi/moshi/quantization/vq.py
-moshi/moshi/server.py
-moshi/moshi/utils/__init__.py
-moshi/moshi/utils/autocast.py
-moshi/moshi/utils/compile.py
-moshi/moshi/utils/connection.py
-moshi/moshi/utils/logging.py
-moshi/moshi/utils/sampling.py
-moshi/pyproject.toml
-moshi/requirements.txt
-moshi/setup.cfg
-package-lock.json
+#!/bin/bash
+# setup_personaplex.sh
+# TUKA-AI-д PersonaPlex-ийн сонгосон файлуудыг хуулж оруулах
+
+# 1️⃣ Clone the repo temporarily
+TMP_DIR=$(mktemp -d)
+echo "Cloning PersonaPlex repo into $TMP_DIR ..."
+git clone --depth 1 git@github.com:NVIDIA/personaplex.git "$TMP_DIR"
+
+# 2️⃣ Define the list of files/folders to copy
+FILES_TO_COPY=(
+  ".github/ISSUE_TEMPLATE/bug.yml"
+  ".github/ISSUE_TEMPLATE/question.yml"
+  ".gitignore"
+  "LICENSE-MIT"
+  "README.md"
+  "assets/architecture_diagram.png"
+  "assets/test/input_assistant.wav"
+  "assets/test/input_service.wav"
+  "assets/test/prompt_service.txt"
+  "client/.env.local"
+  "client/.eslintrc.json"
+  "client/.nvmrc"
+  "client/.prettierignore"
+  "client/.prettierrc.json"
+  "client/Dockerfile"
+  "client/LICENSE"
+  "client/README.md"
+  "client/index.html"
+  "client/package-lock.json"
+  "client/package.json"
+  "client/postcss.config.js"
+  "client/public/assets/decoderWorker.min.js"
+  "client/public/assets/decoderWorker.min.wasm"
+  "client/public/assets/favicon-16x16.png"
+  "client/public/assets/favicon-32x32.png"
+  "client/public/assets/favicon.ico"
+  "client/src/app.tsx"
+  "client/src/audio-processor.ts"
+  "client/src/components/Button/Button.tsx"
+  "client/src/components/Input/Input.tsx"
+  "client/src/decoder/decoderWorker.ts"
+  "client/src/env.ts"
+  "client/src/index.css"
+  "client/src/modules.d.ts"
+  "client/src/pages/Conversation/Conversation.tsx"
+  "client/src/pages/Conversation/MediaContext.ts"
+  "client/src/pages/Conversation/canvas-logo-black.png"
+  "client/src/pages/Conversation/canvas-logo.png"
+  "client/src/pages/Conversation/components/AudioVisualizer/AudioVisualizer.tsx"
+  "client/src/pages/Conversation/components/AudioVisualizer/ClientVisualizer.tsx"
+  "client/src/pages/Conversation/components/AudioVisualizer/ServerVisualizer.tsx"
+  "client/src/pages/Conversation/components/Controls/Controls.tsx"
+  "client/src/pages/Conversation/components/ModelParams/ModelParams.tsx"
+  "client/src/pages/Conversation/components/ServerAudio/ServerAudio.tsx"
+  "client/src/pages/Conversation/components/ServerAudio/ServerAudioStats.tsx"
+  "client/src/pages/Conversation/components/ServerInfo/ServerInfo.tsx"
+  "client/src/pages/Conversation/components/TextDisplay/TextDisplay.tsx"
+  "client/src/pages/Conversation/components/TextDisplay/TextDisplayStats.tsx"
+  "client/src/pages/Conversation/components/UserAudio/UserAudio.tsx"
+  "client/src/pages/Conversation/components/UserAudio/UserAudioStats.tsx"
+  "client/src/pages/Conversation/getMimeType.ts"
+  "client/src/pages/Conversation/hooks/audioUtils.ts"
+  "client/src/pages/Conversation/hooks/useLocalStorage.ts"
+  "client/src/pages/Conversation/hooks/useModelParams.ts"
+  "client/src/pages/Conversation/hooks/useServerInfo.ts"
+  "client/src/pages/Conversation/hooks/useServerText.ts"
+  "client/src/pages/Conversation/hooks/useSocket.ts"
+  "client/src/pages/Conversation/hooks/useSystemTheme.ts"
+  "client/src/pages/Conversation/hooks/useUserAudio.ts"
+  "client/src/pages/Queue/Queue.tsx"
+  "client/src/pages/Queue/api/client.ts"
+  "client/src/pages/Queue/api/errors/api_error.ts"
+  "client/src/pages/Queue/api/validators.ts"
+  "client/src/pages/Queue/api/errors/response_error.ts"
+  "client/src/pages/Queue/hooks/useUserEmail.ts"
+  "client/src/pages/Conversation/hooks/useServerAudio.ts"
+  "client/src/protocol/encoder.ts"
+  "client/src/protocol/testMessages.ts"
+  "client/src/protocol/types.ts"
+  "client/tailwind.config.js"
+  "client/tsconfig.json"
+  "client/vite.config.ts"
+  "moshi/LICENSE.audiocraft"
+  "moshi/LICENSE.moshi"
+  "moshi/MANIFEST.in"
+  "moshi/moshi/init.py"
+  "moshi/moshi/client_utils.py"
+  "moshi/moshi/models/init.py"
+  "moshi/moshi/models/compression.py"
+  "moshi/moshi/models/lm.py"
+  "moshi/moshi/models/loaders.py"
+  "moshi/moshi/modules/init.py"
+  "moshi/moshi/modules/conv.py"
+  "moshi/moshi/modules/gating.py"
+  "moshi/moshi/modules/resample.py"
+  "moshi/moshi/modules/rope.py"
+  "moshi/moshi/modules/seanet.py"
+  "moshi/moshi/modules/streaming.py"
+  "moshi/moshi/modules/transformer.py"
+  "moshi/moshi/offline.py"
+  "moshi/moshi/quantization/init.py"
+  "moshi/moshi/quantization/base.py"
+  "moshi/moshi/quantization/core_vq.py"
+  "moshi/moshi/quantization/vq.py"
+  "moshi/moshi/server.py"
+  "moshi/moshi/utils/init.py"
+  "moshi/moshi/utils/autocast.py"
+  "moshi/moshi/utils/compile.py"
+  "moshi/moshi/utils/connection.py"
+  "moshi/moshi/utils/logging.py"
+  "moshi/moshi/utils/sampling.py"
+  "moshi/pyproject.toml"
+  "moshi/requirements.txt"
+  "moshi/setup.cfg"
+  "package-lock.json"
+)
+
+# 3️⃣ Copy files to current directory
+for FILE in "${FILES_TO_COPY[@]}"; do
+    DEST_DIR=$(dirname "$FILE")
+    mkdir -p "$DEST_DIR"
+    cp "$TMP_DIR/$FILE" "$DEST_DIR/" 2>/dev/null || echo "⚠️ Missing file: $FILE"
+done
+
+# 4️⃣ Cleanup
+rm -rf "$TMP_DIR"
+echo "✅ PersonaPlex files copied successfully!"
