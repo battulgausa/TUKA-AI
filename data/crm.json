@@ -1,0 +1,120 @@
+{
+  "leads": [
+    {
+      "id": "lead_1",
+      "name": "Test Lead 1",
+      "channel": "email",
+      "status": "new"
+    },
+    {
+      "id": "lead_2",
+      "name": "Test Lead 2",
+      "channel": "email",
+      "status": "new"
+    },
+    {
+      "id": "lead_3",
+      "name": "Test Lead 3",
+      "channel": "email",
+      "status": "new"
+    },
+    {
+      "id": "lead_4",
+      "name": "Test Lead 4",
+      "channel": "email",
+      "status": "new"
+    },
+    {
+      "id": "lead_5",
+      "name": "Test Lead 5",
+      "channel": "email",
+      "status": "new"
+    }
+  ],
+  "workflows": [
+    {
+      "id": "wf_1",
+      "name": "CRM Follow-up",
+      "stages": [
+        "Day 0",
+        "Day 2",
+        "Day 7"
+      ],
+      "created_at": "2026-02-21T04:28:40.746418Z"
+    }
+  ],
+  "templates": [
+    {
+      "id": "tpl_1",
+      "kind": "sms",
+      "text": "Hi {name}, just checking in—do you have 5 minutes to chat about your project?",
+      "created_at": "2026-02-21T04:28:40.767555Z"
+    },
+    {
+      "id": "tpl_2",
+      "kind": "email",
+      "text": "Subject: Quick follow-up\n\nHi {name},\nJust following up on our last message. What’s a good time to connect?\n\nThanks,\n{sender}",
+      "created_at": "2026-02-21T04:28:40.777011Z"
+    },
+    {
+      "id": "tpl_3",
+      "kind": "sms",
+      "text": "Hi {name}, just checking in—do you have 5 minutes to chat about your project?",
+      "created_at": "2026-02-21T04:36:27.067358Z"
+    },
+    {
+      "id": "tpl_4",
+      "kind": "email",
+      "text": "Subject: Quick follow-up\n\nHi {name},\nJust following up on our last message. What’s a good time to connect?\n\nThanks,\n{sender}",
+      "created_at": "2026-02-21T04:36:27.079515Z"
+    },
+    {
+      "id": "tpl_5",
+      "kind": "sms",
+      "text": "Hi {name}, just checking in—do you have 5 minutes to chat about your project?",
+      "created_at": "2026-02-21T04:46:53.704152Z"
+    },
+    {
+      "id": "tpl_6",
+      "kind": "email",
+      "text": "Subject: Quick follow-up\n\nHi {name},\nJust following up on our last message. What’s a good time to connect?\n\nThanks,\n{sender}",
+      "created_at": "2026-02-21T04:46:53.721456Z"
+    },
+    {
+      "id": "tpl_7",
+      "kind": "sms",
+      "text": "Hi {name}, just checking in—do you have 5 minutes to chat about your project?",
+      "created_at": "2026-02-21T05:06:11.919938Z"
+    },
+    {
+      "id": "tpl_8",
+      "kind": "email",
+      "text": "Subject: Quick follow-up\n\nHi {name},\nJust following up on our last message. What’s a good time to connect?\n\nThanks,\n{sender}",
+      "created_at": "2026-02-21T05:06:11.938798Z"
+    },
+    {
+      "id": "tpl_9",
+      "kind": "sms",
+      "text": "Hi {name}, just checking in—do you have 5 minutes to chat about your project?",
+      "created_at": "2026-02-21T05:07:03.072016Z"
+    },
+    {
+      "id": "tpl_10",
+      "kind": "email",
+      "text": "Subject: Quick follow-up\n\nHi {name},\nJust following up on our last message. What’s a good time to connect?\n\nThanks,\n{sender}",
+      "created_at": "2026-02-21T05:07:03.091095Z"
+    },
+    {
+      "id": "tpl_11",
+      "kind": "sms",
+      "text": "Hi {name}, just checking in—do you have 5 minutes to chat about your project?",
+      "created_at": "2026-02-21T06:43:24.806464Z"
+    },
+    {
+      "id": "tpl_12",
+      "kind": "email",
+      "text": "Subject: Quick follow-up\n\nHi {name},\nJust following up on our last message. What’s a good time to connect?\n\nThanks,\n{sender}",
+      "created_at": "2026-02-21T06:43:24.824480Z"
+    }
+  ]
+}

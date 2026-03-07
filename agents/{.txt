@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "users": [
+    {
+      "id": "admin_1",
+      "username": "admin",
+      "role": "admin",
+      "password_bcrypt": "$2b$12$REPLACE_WITH_REAL_HASH",
+      "is_active": true,
+      "allowed_hours": {
+        "timezone": "America/Chicago",
+        "days": [0, 1, 2, 3, 4],
+        "start": "08:00",
+        "end": "17:00"
+      }
+    },
+    {
+      "id": "worker_1",
+      "username": "worker1",
+      "role": "worker",
+      "password_bcrypt": "$2b$12$REPLACE_WITH_REAL_HASH",
+      "is_active": true,
+      "allowed_hours": {
+        "timezone": "America/Chicago",
+        "days": [0, 1, 2, 3, 4],
+        "start": "08:00",
+        "end": "17:00"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"id": "96600c24-2d27-4667-ad74-d4cc4e2879b0", "created_at": "2026-03-05T07:29:34.175460-06:00", "created_by": "worker", "status": "done", "task": {"data": {"type": "repo_pr", "payload": {"repo": "owner/name", "goal": "fix bug"}}}, "updated_at": "2026-03-06T23:56:56.015780-06:00"}

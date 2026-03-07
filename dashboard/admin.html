@@ -1,0 +1,76 @@
+<script>
+const API = "http://127.0.0.1:8787";
+
+async function login() {
+  const err = document.getElementById("error");
+  err.textContent = "";
+
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    const res = await fetch(API + "/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      err.textContent = data.detail || ("Login failed: " + res.status);
+      return;
+    }
+
+    localStorage.setItem("token", data.token);
+    document.getElementById("login").style.display = "none";
+    document.getElementById("panel").style.display = "block";
+    loadTasks();
+  } catch (e) {
+    err.textContent = "API холбогдсонгүй: " + e.message;
+  }
+}
+
+async function loadTasks() {
+  const err = document.getElementById("error");
+  const tasks = document.getElementById("tasks");
+  err.textContent = "";
+
+  const token = localStorage.getItem("token");
+
+  try {
+    const res = await fetch(API + "/admin/tasks?limit=50", {
+      headers: { Authorization: "Bearer " + token }
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      err.textContent = data.detail || ("Load tasks failed: " + res.status);
+      return;
+    }
+
+    tasks.textContent = JSON.stringify(data.items, null, 2);
+  } catch (e) {
+    err.textContent = "Tasks татаж чадсангүй: " + e.message;
+  }
+}
+</script>
+@app.post("/admin/tasks/{task_id}/status")
+def admin_update_task_status(
+    task_id: str,
+    payload_in: dict,
+    Authorization: Optional[str] = Header(default=None),
+):
+    payload = _require_token(Authorization)
+    _require_role(payload, "admin")
+
+    new_status = payload_in.get("status")
+    if new_status not in {"submitted", "running", "done", "failed"}:
+        raise HTTPException(status_code=400, detail="Invalid status")
+
+    updated = update_task_status(task_id=task_id, new_status=new_status)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    return {"ok": True, "item": updated}

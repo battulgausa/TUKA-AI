@@ -1,0 +1,25 @@
+﻿{
+  "users": [
+    {
+      "id": "admin1",
+      "username": "admin",
+      "role": "admin",
+      "password_hash": "$2b$12$JrudC7jx76xfBOgMjUcu0erD7ADhGg91gAWfpr/EH/e1VmTSRNuhm",
+      "is_active": true
+    },
+    {
+      "id": "worker1",
+      "username": "worker1",
+      "role": "worker",
+      "password_hash": "$2b$12$0wgRVOJFaEXKdpbi3OcPYuOgpkDqc../qXG/JnHxbPKfF4qQ3CRHO",
+      "is_active": true
+    }
+  ],
+  "settings": {
+    "timezone": "America/Chicago",
+    "worker_schedule": {
+      "start": "00:00",
+      "end": "23:59"
+    }
+  }
+}

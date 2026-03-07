@@ -1,0 +1,137 @@
+import json
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+DB = Path("data/queue.json")
+
+def _now_utc() -> datetime:
+    return datetime.now(timezone.utc)
+
+def _load() -> Dict[str, Any]:
+    if not DB.exists():
+        return {"jobs": []}
+    return json.loads(DB.read_text(encoding="utf-8"))
+
+def _save(db: Dict[str, Any]) -> None:
+    DB.parent.mkdir(parents=True, exist_ok=True)
+    DB.write_text(json.dumps(db, indent=2), encoding="utf-8")
+
+def _default_campaign_id(now: Optional[datetime] = None) -> str:
+    now = now or _now_utc()
+    # Example: camp_20260301_015507Z
+    return f"camp_{now.strftime('%Y%m%d_%H%M%SZ')}"
+
+def enqueue_followups(
+    workflow_name: str,
+    leads: List[Dict[str, Any]],
+    stages: List[int],
+    campaign_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Adds followup jobs into data/queue.json.
+
+    Key point:
+    - Old dedupe key: (workflow, lead_id, day, channel)
+    - New dedupe key: (workflow, campaign_id, lead_id, day, channel)
+      => allows running same workflow multiple times via different campaign_id.
+    """
+    db = _load()
+    now = _now_utc()
+    campaign_id = campaign_id or _default_campaign_id(now)
+
+    existing = set()
+    for j in db.get("jobs", []):
+        k = (
+            j.get("workflow"),
+            j.get("campaign_id"),
+            j.get("lead_id"),
+            j.get("day"),
+            j.get("channel"),
+        )
+        existing.add(k)
+
+    added = 0
+
+    for lead in leads:
+        lead_id = lead.get("id")
+        channel = lead.get("channel", "email")
+        for day in stages:
+            key = (workflow_name, campaign_id, lead_id, day, channel)
+            if key in existing:
+                continue
+            existing.add(key)
+
+            due = now + timedelta(days=int(day))
+
+            job = {
+                "id": f"job_{len(db.get('jobs', [])) + 1}",
+                "type": "followup",
+                "workflow": workflow_name,
+                "campaign_id": campaign_id,
+                "lead_id": lead_id,
+                "channel": channel,
+                "day": int(day),
+                "due_at": due.isoformat(),
+                "status": "queued",
+            }
+
+            db.setdefault("jobs", []).append(job)
+            added += 1
+
+    _save(db)
+    return {"status": "ok", "campaign_id": campaign_id, "added": added, "total_jobs": len(db["jobs"])}
+
+def run_due() -> Dict[str, Any]:
+    """
+    Sends all jobs that are queued and due_at <= now.
+    For now "send" means marking as sent + adding sent_at timestamp.
+    """
+    db = _load()
+    now = _now_utc()
+
+    queued = 0
+    due = 0
+    sent = 0
+
+    for job in db.get("jobs", []):
+        if job.get("status") == "queued":
+            queued += 1
+            try:
+                due_at = datetime.fromisoformat(job["due_at"])
+            except Exception:
+                # If due_at is broken, skip safely
+                continue
+
+            if due_at <= now:
+                due += 1
+                job["status"] = "sent"
+                job["sent_at"] = now.isoformat()
+                sent += 1
+
+    _save(db)
+    return {"status": "ok", "queued": queued, "due": due, "sent": sent, "now": now.isoformat()}
+
+def force_all_due() -> Dict[str, Any]:
+    """Utility: set all queued jobs to be due immediately."""
+    db = _load()
+    now = _now_utc()
+    changed = 0
+    for job in db.get("jobs", []):
+        if job.get("status") == "queued":
+            job["due_at"] = (now - timedelta(seconds=1)).isoformat()
+            changed += 1
+    _save(db)
+    return {"status": "ok", "changed": changed, "now": now.isoformat()}
+
+def reset_sent_to_queued() -> Dict[str, Any]:
+    """Utility: move sent jobs back to queued (for testing)."""
+    db = _load()
+    changed = 0
+    for job in db.get("jobs", []):
+        if job.get("status") == "sent":
+            job["status"] = "queued"
+            job.pop("sent_at", None)
+            changed += 1
+    _save(db)
+    return {"status": "ok", "changed": changed}

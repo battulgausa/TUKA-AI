@@ -1,0 +1,10 @@
+def write_test_file(workspace_path: str):
+
+    repo_dir = Path(workspace_path) / "repo"
+
+    test_file = repo_dir / "TUKA_TEST.txt"
+
+    with open(test_file, "w", encoding="utf-8") as f:
+        f.write("Hello from Tuka AI 🚀\n")
+
+    return str(test_file)

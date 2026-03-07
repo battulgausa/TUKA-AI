@@ -1,0 +1,4 @@
+ { "status": "ok",
+  "token": "....",
+  "role": "admin",
+  "user_id": "admin" }

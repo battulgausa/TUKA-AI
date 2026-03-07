@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tuka Admin Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 24px;
+      background: #f7f7f9;
+      color: #222;
+    }
+    h1 { margin-bottom: 8px; }
+    .small {
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+    .topbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    input {
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      min-width: 320px;
+    }
+    button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #222;
+      color: white;
+    }
+    button:hover { opacity: 0.92; }
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: white;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      vertical-align: middle;
+    }
+    th { background: #fafafa; }
+    select {
+      padding: 6px 8px;
+      border-radius: 8px;
+    }
+    .status-submitted { color: #555; font-weight: bold; }
+    .status-running   { color: #0a66c2; font-weight: bold; }
+    .status-done      { color: #128a3d; font-weight: bold; }
+    .status-failed    { color: #c62828; font-weight: bold; }
+    .msg {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .mono {
+      font-family: Consolas, monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tuka Admin Dashboard</h1>
+  <div class="small">Task orchestration control panel</div>
+
+  <div class="topbar">
+    <input id="tokenInput" type="text" placeholder="Paste admin Bearer token here" />
+    <button onclick="saveToken()">Save Token</button>
+    <button onclick="loadTasks()">Refresh</button>
+  </div>
+
+  <div class="card">
+    <table id="taskTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Type</th>
+          <th>Repo</th>
+          <th>Goal</th>
+          <th>Status</th>
+          <th>Created By</th>
+          <th>Created At</th>
+          <th>Updated At</th>
+          <th>New Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div id="msg" class="msg"></div>
+  </div>
+
+  <script>
+    const API_BASE = "";
+
+    function showMessage(text, ok = true) {
+      const el = document.getElementById("msg");
+      el.textContent = text;
+      el.style.color = ok ? "green" : "red";
+    }
+
+    function safe(value) {
+      return value ?? "";
+    }
+
+    function statusClass(status) {
+      return "status-" + (status || "submitted");
+    }
+
+    function getToken() {
+      return localStorage.getItem("tuka_admin_token") || "";
+    }
+
+    function saveToken() {
+      const token = document.getElementById("tokenInput").value.trim();
+      localStorage.setItem("tuka_admin_token", token);
+      showMessage("Token saved.", true);
+    }
+
+    async function loadTasks() {
+      try {
+        const token = getToken();
+        document.getElementById("tokenInput").value = token;
+
+        if (!token) {
+          showMessage("Please paste admin token first.", false);
+          return;
+        }
+
+        showMessage("Loading tasks...", true);
+
+        const res = await fetch(`${API_BASE}/admin/tasks`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Failed to load tasks: ${res.status} ${text}`);
+        }
+
+        const data = await res.json();
+        const tasks = data.items || data || [];
+
+        const tbody = document.querySelector("#taskTable tbody");
+        tbody.innerHTML = "";
+
+        for (const task of tasks) {
+          const tr = document.createElement("tr");
+          const currentStatus = task.status || "submitted";
+
+          const type = task.task?.data?.type || "";
+          const repo = task.task?.data?.payload?.repo || "";
+          const goal = task.task?.data?.payload?.goal || "";
+
+          tr.innerHTML = `
+            <td class="mono">${safe(task.id)}</td>
+            <td>${safe(type)}</td>
+            <td>${safe(repo)}</td>
+            <td>${safe(goal)}</td>
+            <td class="${statusClass(currentStatus)}">${safe(currentStatus)}</td>
+            <td>${safe(task.created_by)}</td>
+            <td>${safe(task.created_at)}</td>
+            <td>${safe(task.updated_at)}</td>
+            <td>
+              <select id="status-${task.id}">
+                <option value="submitted" ${currentStatus === "submitted" ? "selected" : ""}>submitted</option>
+                <option value="running" ${currentStatus === "running" ? "selected" : ""}>running</option>
+                <option value="done" ${currentStatus === "done" ? "selected" : ""}>done</option>
+                <option value="failed" ${currentStatus === "failed" ? "selected" : ""}>failed</option>
+              </select>
+            </td>
+            <td>
+              <button onclick="updateStatus('${task.id}')">Update</button>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        }
+
+        showMessage(`Loaded ${tasks.length} task(s).`, true);
+      } catch (err) {
+        console.error(err);
+        showMessage(err.message, false);
+      }
+    }
+
+    async function updateStatus(taskId) {
+      try {
+        const token = getToken();
+        if (!token) {
+          showMessage("Please save admin token first.", false);
+          return;
+        }
+
+        const select = document.getElementById(`status-${taskId}`);
+        const newStatus = select.value;
+
+        const res = await fetch(`${API_BASE}/admin/tasks/${taskId}/status`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            status: newStatus
+          })
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Failed to update status: ${res.status} ${text}`);
+        }
+
+        showMessage(`Task ${taskId} updated to ${newStatus}`, true);
+        await loadTasks();
+      } catch (err) {
+        console.error(err);
+        showMessage(err.message, false);
+      }
+    }
+
+    window.onload = function () {
+      const token = getToken();
+      document.getElementById("tokenInput").value = token;
+      if (token) {
+        loadTasks();
+      }
+    };
+  </script>
+</body>
+</html>

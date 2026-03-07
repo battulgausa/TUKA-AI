@@ -1,0 +1,26 @@
+{
+  "sessions": [
+    {
+      "token": "eyJ1aWQiOiJhZG1pbjEiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE3NzI4NzcwMTN9.UegPu7tDwswDd2ehde2mw9onoQZMiDfjtzwjRjJFhss",
+      "uid": "admin1",
+      "role": "admin",
+      "exp": 1772877013,
+      "created_at": "2026-03-07T05:50:13.498932+00:00"
+    },
+    {
+      "token": "eyJ1aWQiOiJhZG1pbjEiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE3NzI4NzcwMTN9.UegPu7tDwswDd2ehde2mw9onoQZMiDfjtzwjRjJFhss",
+      "uid": "admin1",
+      "role": "admin",
+      "exp": 1772877013,
+      "created_at": "2026-03-07T05:50:13.500513+00:00"
+    },
+    {
+      "token": "eyJ1aWQiOiJhZG1pbjEiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE3NzI4NzcxMTB9.PQ5Ya1Ut2C4FWqDBJ_N87Vp5s-U4nQzt4O8W5SgciDo",
+      "uid": "admin1",
+      "role": "admin",
+      "exp": 1772877110,
+      "created_at": "2026-03-07T05:51:50.844314+00:00"
+    }
+  ],
+  "revoked_tokens": []
+}
