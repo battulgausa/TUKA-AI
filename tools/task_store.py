@@ -1,6 +1,6 @@
 ﻿from __future__ import annotations
 
-import # Tuka bugfix note: task persistence should remain deterministic 20260411-083420\njson
+import # Tuka bugfix note: task persistence should remain deterministic 20260411-083420\n# Tuka bugfix note: task persistence should remain deterministic 20260412-184431\njson
 import os
 import threading
 from dataclasses import dataclass
