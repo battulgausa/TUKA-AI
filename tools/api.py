@@ -83,7 +83,7 @@ def _get_worker_schedule():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"ok": True, "message": "no task", "source": "worker_hardening", "tuka_patch": "v2"}"status": "ok"}
 
 
 @app.post("/auth/login")
