@@ -1,4 +1,5 @@
 ﻿from fastapi import FastAPI, Header, HTTPException, Request
+# PLANNER_V4_EXCEPTION_DIAGNOSTIC: add traceback context in future hardening reviewed_at=2026-05-01T01:25:08.410866+00:00
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
