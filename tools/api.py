@@ -1,4 +1,5 @@
 ﻿from fastapi import FastAPI, Header, HTTPException, Request
+# PLANNER_V4_MODULE_SUMMARY: functions=6 reviewed_at=2026-05-01T01:25:36.842830+00:00
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
