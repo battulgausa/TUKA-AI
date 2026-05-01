@@ -1,0 +1,1 @@
+# REASONING_APPEND_IDEMPOTENCY_REVIEW: append/idempotency risk reviewed_at=2026-05-01T04:17:10.843103+00:00
