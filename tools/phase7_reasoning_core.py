@@ -1,0 +1,1 @@
+# PHASE7_REASONING_CORE_REVIEW: goal-gated reasoning layer verified
