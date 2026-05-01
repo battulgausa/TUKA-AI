@@ -1,4 +1,5 @@
 import subprocess
+# PLANNER_V5_ENGINEERING_SCAN: functions=9 reviewed_at=2026-05-01T01:42:59.390230+00:00
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
