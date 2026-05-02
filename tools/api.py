@@ -209,3 +209,4 @@ def worker_next_task(Authorization: Optional[str] = Header(default=None)):
         return {"ok": True, "item": None}
 
     return {"ok": True, "item": item}
+# THIS MUST BE BLOCKED AFTER RESTART
