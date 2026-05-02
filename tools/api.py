@@ -209,3 +209,4 @@ def worker_next_task(Authorization: Optional[str] = Header(default=None)):
         return {"ok": True, "item": None}
 
     return {"ok": True, "item": item}
+# RULE_ENGINE_BLOCK_TEST_2: this should be blocked
