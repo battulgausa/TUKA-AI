@@ -1,0 +1,21 @@
+# Local Python caches and environments
+__pycache__/
+*.py[cod]
+.venv/
+.venv_*/
+
+# Local external model/runtime clones
+external/
+
+# Local secrets and tokens
+data/secrets.json
+tools/ghp_*.txt
+*.pem
+*.key
+*.env
+
+# Generated runtime logs and reports
+*.log
+data/*_report.json
+data/*_log.jsonl
+data/personaplex_natural_profile.json

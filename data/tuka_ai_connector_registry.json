@@ -1,0 +1,162 @@
+{
+  "name": "Tuka Governed AI Connector Registry",
+  "version": 1,
+  "mode": "connector_registry_no_external_calls",
+  "updated_at": "2026-05-28",
+  "default_route": "current_runtime_safe",
+  "supported_channels": {
+    "api": true,
+    "local_code": true,
+    "admin_console": true,
+    "browser_verify": true
+  },
+  "providers": {
+    "current_runtime_safe": {
+      "label": "Current runtime AI",
+      "kind": "current_runtime",
+      "enabled": true,
+      "external_network": false,
+      "paid_cloud": false,
+      "secret_env": null,
+      "allowed_modes": ["status", "summary", "planning", "verification"],
+      "live_call_allowed": false,
+      "admin_approval_required": false
+    },
+    "local_open_model": {
+      "label": "Local/open model adapter",
+      "kind": "local_model",
+      "enabled": true,
+      "external_network": false,
+      "paid_cloud": false,
+      "secret_env": null,
+      "allowed_modes": ["status", "summary", "local_reasoning_preview"],
+      "live_call_allowed": false,
+      "admin_approval_required": true
+    },
+    "openai_api": {
+      "label": "OpenAI API connector",
+      "kind": "cloud_api",
+      "enabled": false,
+      "external_network": true,
+      "paid_cloud": true,
+      "secret_env": "OPENAI_API_KEY",
+      "allowed_modes": ["chat", "reasoning", "coding", "vision_future"],
+      "live_call_allowed": false,
+      "admin_approval_required": true
+    },
+    "anthropic_api": {
+      "label": "Anthropic API connector",
+      "kind": "cloud_api",
+      "enabled": false,
+      "external_network": true,
+      "paid_cloud": true,
+      "secret_env": "ANTHROPIC_API_KEY",
+      "allowed_modes": ["chat", "reasoning", "coding"],
+      "live_call_allowed": false,
+      "admin_approval_required": true
+    },
+    "skybridge_provider_g": {
+      "label": "SkyBridge connector",
+      "kind": "cloud_api",
+      "enabled": false,
+      "external_network": true,
+      "paid_cloud": true,
+      "secret_env": "GOOGLE_API_KEY",
+      "alias_pack": "tuka_skybridge_capability_pack.json",
+      "allowed_modes": ["sky_text", "sky_vision", "sky_video", "sky_audio", "sky_docs", "sky_context", "sky_reason", "sky_code", "sky_tool", "sky_struct", "sky_ground", "sky_vector", "sky_cache", "sky_live"],
+      "live_call_allowed": false,
+      "admin_approval_required": true
+    },
+    "voxforge_voice_api": {
+      "label": "VoxForge voice connector",
+      "kind": "external_voice_api",
+      "enabled": false,
+      "external_network": true,
+      "paid_cloud": true,
+      "secret_env": "ELEVENLABS_API_KEY",
+      "alias_pack": "tuka_voice_search_persona_pack.json",
+      "allowed_modes": ["text_to_speech", "voice_selection", "voice_stream_future", "voice_agent_future"],
+      "live_call_allowed": false,
+      "admin_approval_required": true
+    },
+    "tuka_natural_duplex_local": {
+      "label": "Tuka Natural Duplex connector",
+      "kind": "local_open_voice_model",
+      "enabled": false,
+      "external_network": false,
+      "paid_cloud": false,
+      "secret_env": "HF_TOKEN",
+      "source": "NVIDIA PersonaPlex",
+      "source_repo": "https://github.com/NVIDIA/personaplex",
+      "model_id": "nvidia/personaplex-7b-v1",
+      "alias_pack": "personaplex_natural_profile.json",
+      "allowed_modes": ["full_duplex_voice_future", "natural_voice_prompt", "offline_voice_eval_future"],
+      "live_call_allowed": false,
+      "admin_approval_required": true,
+      "license_acceptance_required": true,
+      "cpu_offload_supported": true
+    },
+    "sourcelens_grounded_search_api": {
+      "label": "SourceLens grounded search connector",
+      "kind": "external_grounded_search_api",
+      "enabled": false,
+      "external_network": true,
+      "paid_cloud": true,
+      "secret_env": "PERPLEXITY_API_KEY",
+      "alias_pack": "tuka_voice_search_persona_pack.json",
+      "allowed_modes": ["grounded_answer", "citations", "research_summary", "search_stream_future"],
+      "live_call_allowed": false,
+      "admin_approval_required": true
+    },
+    "personacore_local_engine": {
+      "label": "PersonaCore local conversation engine",
+      "kind": "local_conversation_policy",
+      "enabled": true,
+      "external_network": false,
+      "paid_cloud": false,
+      "secret_env": null,
+      "alias_pack": "tuka_voice_search_persona_pack.json",
+      "allowed_modes": ["mn_en_intent_reply", "safe_unknown_reply", "name_identity_reply", "high_risk_block"],
+      "live_call_allowed": false,
+      "admin_approval_required": false
+    },
+    "browser_ai_manual": {
+      "label": "Browser/manual AI workspace",
+      "kind": "browser_manual",
+      "enabled": true,
+      "external_network": true,
+      "paid_cloud": "unknown",
+      "secret_env": null,
+      "allowed_modes": ["manual_inspection", "admin_visible_verification"],
+      "live_call_allowed": false,
+      "admin_approval_required": true
+    }
+  },
+  "governance": {
+    "admin_first": true,
+    "audit_required": true,
+    "cost_guard_required": true,
+    "secret_guard_required": true,
+    "pii_guard_required": true,
+    "prompt_injection_guard_required": true,
+    "result_verification_required": true,
+    "fail_closed_unknown_provider": true,
+    "no_autonomous_external_ai_calls": true,
+    "no_secret_printing": true,
+    "no_paid_or_cloud_usage_without_admin": true,
+    "no_browser_ai_action_without_admin": true
+  },
+  "blocked_actions": {
+    "external_ai_live_call": false,
+    "paid_cloud_ai_call": false,
+    "send_files_to_external_ai": false,
+    "send_private_memory_to_external_ai": false,
+    "browser_login_or_submit_to_ai": false,
+    "external_voice_live_call": false,
+    "external_grounded_search_live_call": false,
+    "send_audio_to_external_voice_api": false,
+    "send_query_to_grounded_search_api": false,
+    "auto_select_provider": false,
+    "bypass_ai_connector_governance": false
+  }
+}
