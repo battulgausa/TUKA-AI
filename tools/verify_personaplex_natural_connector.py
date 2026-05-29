@@ -29,6 +29,7 @@ def main() -> dict:
     repo = readiness.get("repo", {})
     deps = readiness.get("dependencies", {})
     runtime = readiness.get("runtime", {})
+    torch_cuda = readiness.get("torch_cuda", {})
 
     checks = {
         "official_repo_cloned": result(repo.get("exists") and repo.get("readme_exists"), repo),
@@ -48,6 +49,10 @@ def main() -> dict:
         "dependency_status_recorded": result(
             all(name in deps for name in ["torch", "torchaudio", "transformers", "accelerate", "huggingface_hub", "moshi"]),
             deps,
+        ),
+        "torch_cuda_available": result(
+            torch_cuda.get("checked") is True and torch_cuda.get("cuda_available") is True,
+            torch_cuda,
         ),
         "readiness_is_fail_closed": result(
             runtime.get("live_ready") is False if runtime.get("blockers") else runtime.get("live_ready") is True,

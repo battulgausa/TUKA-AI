@@ -73,6 +73,38 @@ def _python_version(python_exe: Path) -> str | None:
     return (proc.stdout or proc.stderr).strip() or None
 
 
+def _torch_cuda_status(python_exe: Path) -> dict[str, Any]:
+    if not python_exe.exists():
+        return {"checked": False, "reason": "python_missing"}
+    code = (
+        "import json, torch; "
+        "print(json.dumps({"
+        "'torch_version': torch.__version__, "
+        "'cuda_version': torch.version.cuda, "
+        "'cuda_available': torch.cuda.is_available(), "
+        "'device_name': torch.cuda.get_device_name(0) if torch.cuda.is_available() else None"
+        "}))"
+    )
+    try:
+        proc = subprocess.run(
+            [str(python_exe), "-c", code],
+            capture_output=True,
+            text=True,
+            timeout=45,
+            check=False,
+        )
+    except Exception as exc:
+        return {"checked": False, "reason": str(exc)}
+    if proc.returncode != 0:
+        return {"checked": False, "reason": proc.stderr.strip()[:500]}
+    try:
+        data = json.loads(proc.stdout.strip())
+    except Exception:
+        return {"checked": False, "reason": proc.stdout.strip()[:500]}
+    data["checked"] = True
+    return data
+
+
 def _env_present(name: str) -> bool:
     value = os.environ.get(name)
     if value:
@@ -134,6 +166,7 @@ class PersonaPlexNaturalConnector:
         readme = self.repo / "README.md"
         moshi_dir = self.repo / "moshi"
         gpu = _gpu_status()
+        torch_cuda = _torch_cuda_status(VENV_PYTHON)
         current_deps = {
             "torch": _module_available("torch"),
             "torchaudio": _module_available("torchaudio"),
@@ -164,6 +197,8 @@ class PersonaPlexNaturalConnector:
             blockers.append("moshi_package_not_installed")
         if not deps["torch"]:
             blockers.append("torch_not_installed")
+        elif torch_cuda.get("cuda_available") is not True:
+            blockers.append("torch_cuda_not_available")
         if not deps["torchaudio"]:
             blockers.append("torchaudio_not_installed")
         if gpu.get("cpu_offload_recommended") and not deps["accelerate"]:
@@ -205,6 +240,7 @@ class PersonaPlexNaturalConnector:
                 "personaplex_venv": venv_deps,
             },
             "gpu": gpu,
+            "torch_cuda": torch_cuda,
             "runtime": {
                 "live_ready": len(blockers) == 0,
                 "blocked": len(blockers) > 0,
