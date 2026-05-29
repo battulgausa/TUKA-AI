@@ -11,6 +11,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import platform
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -245,9 +246,14 @@ class PersonaPlexNaturalConnector:
                 "live_ready": len(blockers) == 0,
                 "blocked": len(blockers) > 0,
                 "blockers": blockers,
-                "recommended_launch_mode": "moshi.server --cpu-offload"
-                if gpu.get("cpu_offload_recommended")
-                else "moshi.server",
+                "recommended_launch_mode": "moshi.server"
+                if platform.system().lower() == "windows" and torch_cuda.get("cuda_available") is True
+                else (
+                    "moshi.server --cpu-offload"
+                    if gpu.get("cpu_offload_recommended")
+                    else "moshi.server"
+                ),
+                "windows_note": "On this Windows RTX 3080 setup, full CUDA launch passed; cpu-offload hit an accelerate meta-tensor path.",
             },
         }
         self.profile_path.write_text(json.dumps(profile, indent=2, ensure_ascii=False), encoding="utf-8")
