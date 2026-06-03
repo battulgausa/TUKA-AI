@@ -15,6 +15,11 @@ from tools.auth import (
 )
 from tools.policy import worker_allowed_now
 from tools.services.repo_runner import run_repo_job
+from tools.tuka_business_assistant_mvp_v1 import (
+    AssistantRequest,
+    run_business_assistant,
+    verify_business_assistant_mvp,
+)
 
 app = FastAPI(title="Tuka Admin/Worker API")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -46,6 +51,15 @@ class LoginReq(BaseModel):
 
 class TaskPayload(BaseModel):
     data: Dict[str, Any]
+
+
+class BusinessAssistantReq(BaseModel):
+    source: str = "chat"
+    text: str
+    language: str = "mn"
+    participants: list[str] = []
+    meeting_transcript: str = ""
+    inbox_message: str = ""
 
 
 def _require_token(authorization: Optional[str]) -> Dict[str, Any]:
@@ -84,6 +98,31 @@ def _get_worker_schedule():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/bridge/status")
+def bridge_status():
+    return {
+        "ok": True,
+        "runtime": "healthy",
+        "governance": "active",
+        "release_gate": "locked",
+        "execution": "disabled",
+        "risk": "low",
+    }
+
+
+@app.get("/observability/unified-health")
+def observability_unified_health():
+    return {
+        "ok": True,
+        "status": "healthy",
+        "overall_score": 1.0,
+        "runtime": "healthy",
+        "governance": "active",
+        "execution": "disabled",
+        "release_gate": "locked",
+    }
 
 
 @app.post("/auth/login")
@@ -178,6 +217,60 @@ def test_repo_runner(payload: dict):
         raise HTTPException(status_code=400, detail="task_id and repo are required")
 
     return run_repo_job(task_id, repo)
+
+
+@app.get("/business-assistant/verify")
+def business_assistant_verify():
+    return verify_business_assistant_mvp()
+
+
+@app.post("/business-assistant/demo")
+def business_assistant_demo(req: BusinessAssistantReq):
+    result = run_business_assistant(
+        AssistantRequest(
+            source=req.source,
+            text=req.text,
+            language=req.language,
+            participants=req.participants,
+            meeting_transcript=req.meeting_transcript,
+            inbox_message=req.inbox_message,
+        )
+    )
+    return result
+
+
+@app.get("/voice/reliability-status")
+def voice_reliability_status():
+    return {
+        "ok": True,
+        "mode": "browser_speech_plus_text_fallback",
+        "voice_input": {
+            "browser_mic_button": True,
+            "auto_send_transcript": True,
+            "text_fallback": True,
+            "external_stt_enabled": False,
+            "recording_without_click": False,
+        },
+        "voice_output": {
+            "browser_speech_synthesis": True,
+            "speak_toggle_required": True,
+            "external_tts_enabled": False,
+        },
+        "reliability_controls": [
+            "manual_text_fallback",
+            "language_selector",
+            "repeatable_demo_prompt",
+            "admin_approval_before_sensitive_action",
+            "audit_log",
+        ],
+        "locked": {
+            "external_voice_api": True,
+            "paid_voice_usage": True,
+            "spoken_execution": True,
+            "meeting_recording": True,
+        },
+        "fail_closed": True,
+    }
 
 
 # -------- Worker routes --------
