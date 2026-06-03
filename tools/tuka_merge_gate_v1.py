@@ -107,7 +107,12 @@ def evaluate_merge_gate(
     }
     required_approvals_ok = all(approvals.values())
     low_risk_marker = filenames == ["TUKA_REAL_PR_SMOKE.md"]
-    mergeable_clean = pr.get("mergeable") is True and pr.get("mergeable_state") in {"clean", "unstable", "has_hooks"}
+    pr_merged = bool(pr.get("merged_at"))
+    pr_open_or_merged = pr.get("state") == "open" or pr_merged
+    mergeable_clean = (
+        pr_merged
+        or (pr.get("mergeable") is True and pr.get("mergeable_state") in {"clean", "unstable", "has_hooks"})
+    )
     merge_allowed = (
         pr.get("state") == "open"
         and pr.get("base", {}).get("ref") == "main"
@@ -118,7 +123,7 @@ def evaluate_merge_gate(
 
     checks = {
         "pr_exists": bool(pr.get("html_url")),
-        "pr_is_open": pr.get("state") == "open",
+        "pr_open_or_merged": pr_open_or_merged,
         "base_is_main": pr.get("base", {}).get("ref") == "main",
         "mergeable_field_available": "mergeable" in pr,
         "mergeable_clean_or_reviewable": mergeable_clean,
@@ -144,6 +149,8 @@ def evaluate_merge_gate(
             "url": pr.get("html_url"),
             "title": pr.get("title"),
             "state": pr.get("state"),
+            "merged": pr_merged,
+            "merged_at": pr.get("merged_at"),
             "base": pr.get("base", {}).get("ref"),
             "head": pr.get("head", {}).get("ref"),
             "mergeable": pr.get("mergeable"),

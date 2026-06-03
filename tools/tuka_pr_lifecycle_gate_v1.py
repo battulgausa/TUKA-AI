@@ -105,9 +105,11 @@ def verify_pr_lifecycle(
         )
     ]
 
+    pr_merged = bool(pr.get("merged_at"))
+    pr_open_or_merged = pr.get("state") == "open" or pr_merged
     checks = {
         "pr_exists": bool(pr.get("html_url")),
-        "pr_is_open": pr.get("state") == "open",
+        "pr_open_or_merged": pr_open_or_merged,
         "base_is_main": pr.get("base", {}).get("ref") == "main",
         "head_branch_matches": pr.get("head", {}).get("ref") == "tuka/execution-core-real-pr-smoke",
         "commit_count_is_one": len(commits) == 1,
@@ -132,6 +134,8 @@ def verify_pr_lifecycle(
             "url": pr.get("html_url"),
             "title": pr.get("title"),
             "state": pr.get("state"),
+            "merged": pr_merged,
+            "merged_at": pr.get("merged_at"),
             "base": pr.get("base", {}).get("ref"),
             "head": pr.get("head", {}).get("ref"),
             "mergeable": pr.get("mergeable"),

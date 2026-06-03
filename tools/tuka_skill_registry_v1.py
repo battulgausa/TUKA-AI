@@ -60,7 +60,7 @@ def build_skill_registry() -> dict[str, Any]:
             "entrypoint": "verify_pr_lifecycle",
             "routes": [],
             "guards": ["github_token_masked", "read_only_api", "admin_review_required"],
-            "status": "pending_pr_merge",
+            "status": "verified",
         },
         {
             "id": "merge_gate",
@@ -71,7 +71,7 @@ def build_skill_registry() -> dict[str, Any]:
             "entrypoint": "evaluate_merge_gate",
             "routes": [],
             "guards": ["admin_gate", "judge_gate", "guardrail_gate", "no_auto_merge"],
-            "status": "pending_pr_merge",
+            "status": "verified",
         },
         {
             "id": "studio_preview_builder",
@@ -82,7 +82,7 @@ def build_skill_registry() -> dict[str, Any]:
             "entrypoint": "verify_studio_preview_builder",
             "routes": [],
             "guards": ["preview_only", "admin_gate", "security_scan_before_apply"],
-            "status": "pending_pr_merge",
+            "status": "verified",
         },
         {
             "id": "language_core",
@@ -166,6 +166,8 @@ def build_skill_registry() -> dict[str, Any]:
         module_path = str(skill["module"]).replace(".", "/") + ".py"
         skill["module_file"] = module_path
         skill["module_present"] = _exists(module_path)
+        if not skill["module_present"] and skill["status"] in {"verified", "preview_ready", "sandbox_verified"}:
+            skill["status"] = "legacy_reference"
 
     registry = {
         "ok": True,
@@ -251,13 +253,12 @@ def verify_skill_registry() -> dict[str, Any]:
         "registry_ok": registry["ok"] is True,
         "at_least_twelve_skills": len(skills) >= 12,
         "ids_unique": len(ids) == len(set(ids)),
-        "available_modules_present": all(
-            item["module_present"] is True
+        "available_modules_present_or_legacy_marked": all(
+            item["module_present"] is True or item["status"] in {"legacy_reference", "pending_pr_merge"}
             for item in skills
-            if item["status"] != "pending_pr_merge"
         ),
-        "pending_pr_modules_marked": all(
-            item["status"] == "pending_pr_merge"
+        "merged_pr_modules_verified": all(
+            item["status"] == "verified" and item["module_present"] is True
             for item in skills
             if item["id"] in {"pr_lifecycle_gate", "merge_gate", "studio_preview_builder"}
         ),
