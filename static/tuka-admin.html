@@ -97,6 +97,7 @@ body{margin:0;font-family:Inter,Arial,sans-serif;background:#f7f7f8;color:#11182
     <button class="nav-btn" data-page="phase21-agi-hybrid">Phase 21 AGI Hybrid</button>
     <button class="nav-btn" data-page="ai-connectors">AI Connectors</button>
     <button class="nav-btn" data-page="skybridge">SkyBridge</button>
+    <button class="nav-btn" data-page="quantum-shield">Quantum Shield</button>
     <button class="nav-btn" data-page="voice-search-persona">Voice Search Pack</button>
     <button class="nav-btn" data-page="personaplex-natural">Natural Duplex</button>
     <button class="nav-btn" data-page="mongolcore">MongolCore</button>
@@ -1048,6 +1049,54 @@ Audit log
 Reliable voice rule: browser mic is optional, text fallback is always available, external STT/TTS and spoken execution stay locked until Admin + Guardrail + Judge approve.
 
 Caveat: This MVP does not enable live email send, calendar write, file write/delete, meeting recording, external API, money movement, contract commitment, or autonomous execution.</div>
+        </div>
+      </div>
+
+      <div id="page-quantum-shield" class="page">
+        <div class="section">
+          <div class="section-title">Tuka QUANTUM SHIELD</div>
+          <div class="mini-grid">
+            <div class="card"><div class="card-label">NET SHIELD</div><div class="card-value good">TAMPER</div></div>
+            <div class="card"><div class="card-label">TRUST CHANNEL</div><div class="card-value good">SIGNED</div></div>
+            <div class="card"><div class="card-label">KEY ROTATION</div><div class="card-value locked">GATED</div></div>
+            <div class="card"><div class="card-label">QKD / PQC</div><div class="card-value locked">READY</div></div>
+          </div>
+          <div class="actions">
+            <button class="action-btn primary" onclick="runQuantumShieldVerify()">Run Quantum Shield Verify</button>
+            <button class="action-btn" onclick="runQuantumShieldStatus()">Check Shield Status</button>
+            <button class="action-btn" onclick="openTukaPage('phase8-network')">Phase 8 Network</button>
+            <button class="action-btn" onclick="openTukaPage('phase20-quantum')">Phase 20 Quantum</button>
+          </div>
+          <div class="status-box" id="quantumShieldStatus">Ready. Quantum Shield uses quantum-ready security ideas without claiming hardware QKD or unbreakable protection.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Quantum-Ready Security Build Order</div>
+          <div class="log-box">NET SHIELD
+TRUST CHANNEL
+KEY ROTATION
+BRIDGE SECURITY
+QUANTUM-READY CRYPTO
+
+Security meaning:
+- Detect tampering instead of claiming all hacking is impossible.
+- Sign and hash internal agent messages.
+- Add nonce/replay protection for Planner, Worker, Judge, Memory, and Bridge messages.
+- Rotate API/session/per-task keys by policy.
+- Block unauthorized connector calls, data exfiltration, prompt injection, and unexpected destinations.
+- Keep crypto agile for future post-quantum and QKD-provider integrations.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Shield Results</div>
+          <div class="log-box" id="quantumShieldResults">Click Run Quantum Shield Verify.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Safety Caveat</div>
+          <div class="log-box">This is a governed quantum-ready security preview.
+It does not enable hardware QKD, external QKD provider calls, live key rotation, live connector blocking, live crypto migration, bridge sensitive actions, or execution.
+It does not claim unbreakable security. Unknown routes, unexpected destinations, prompt injection, and exfiltration risk fail closed.</div>
         </div>
       </div>
 
@@ -3014,6 +3063,76 @@ async function runBusinessVoiceReliability(){
   if(box) box.textContent=lines.join("\n");
 }
 
+async function runQuantumShieldVerify(){
+  const status=document.getElementById("quantumShieldStatus");
+  const box=document.getElementById("quantumShieldResults");
+  if(status) status.textContent="Running Quantum Shield verification...";
+  if(box) box.textContent="";
+
+  const verify=await phase0FetchJson("/quantum-shield/verify");
+  const bridge=await phase0FetchJson("/bridge/status");
+  const runtime=await phase0FetchJson("/observability/unified-health");
+  const page=document.getElementById("page-quantum-shield");
+  const pageText=page ? page.textContent : "";
+  const data=verify.data || {};
+  const checks=[
+    ["Verify endpoint ok", verify.ok && data.ok===true],
+    ["NET SHIELD visible", pageText.includes("NET SHIELD")],
+    ["TRUST CHANNEL visible", pageText.includes("TRUST CHANNEL")],
+    ["KEY ROTATION visible", pageText.includes("KEY ROTATION")],
+    ["BRIDGE SECURITY visible", pageText.includes("BRIDGE SECURITY")],
+    ["QUANTUM-READY CRYPTO visible", pageText.includes("QUANTUM-READY CRYPTO")],
+    ["Verifier passed all checks", data.passed===data.total && data.total>=30],
+    ["Tamper detection checked", data.checks && data.checks.tamper_detected_and_blocked===true],
+    ["Replay protection checked", data.checks && data.checks.replay_detected_and_blocked===true],
+    ["Connector exfiltration blocked", data.checks && data.checks.data_exfiltration_blocked===true],
+    ["No unbreakable security claim", data.checks && data.checks.no_unbreakable_security_claim===true],
+    ["No hardware QKD claim", data.checks && data.checks.no_hardware_qkd_claim===true],
+    ["Execution remains locked", bridge.ok && bridge.data && bridge.data.execution==="disabled" && runtime.ok]
+  ];
+  const passed=checks.filter(x=>x[1]).length;
+  const total=checks.length;
+  const lines=checks.map(x=>(x[1]?"PASS ":"FAIL ")+x[0]);
+  lines.push("");
+  lines.push("Passed: "+passed+"/"+total);
+  lines.push("Verifier: "+(data.passed || 0)+"/"+(data.total || 0));
+  lines.push(JSON.stringify(data, null, 2));
+  if(status){
+    status.textContent = passed===total
+      ? "Quantum Shield verification PASSED with tamper, trust channel, key rotation, bridge security, and crypto agility evidence."
+      : "Quantum Shield verification INCOMPLETE. Failed checks: "+(total-passed);
+  }
+  if(box) box.textContent=lines.join("\n");
+}
+
+async function runQuantumShieldStatus(){
+  const status=document.getElementById("quantumShieldStatus");
+  const box=document.getElementById("quantumShieldResults");
+  if(status) status.textContent="Checking Quantum Shield status...";
+  const shield=await phase0FetchJson("/quantum-shield/status");
+  const data=shield.data || {};
+  const checks=[
+    ["Status endpoint ok", shield.ok && data.ok===true],
+    ["Preview ready", data.status==="preview_ready"],
+    ["Build sequence complete", data.build_sequence && data.build_sequence.length===5],
+    ["Hardware QKD remains off", data.runtime && data.runtime.hardware_qkd_enabled===false],
+    ["External QKD provider remains off", data.runtime && data.runtime.external_qkd_provider_enabled===false],
+    ["No fake pass guard", data.governance && data.governance.no_fake_pass===true]
+  ];
+  const passed=checks.filter(x=>x[1]).length;
+  const total=checks.length;
+  const lines=checks.map(x=>(x[1]?"PASS ":"FAIL ")+x[0]);
+  lines.push("");
+  lines.push("Passed: "+passed+"/"+total);
+  lines.push(JSON.stringify(data || shield.error, null, 2));
+  if(status){
+    status.textContent = passed===total
+      ? "Quantum Shield status PASSED. Hardware QKD/provider calls are not enabled."
+      : "Quantum Shield status INCOMPLETE. Failed checks: "+(total-passed);
+  }
+  if(box) box.textContent=lines.join("\n");
+}
+
 async function runPhase15MarketTravelVerify(){
   const status=document.getElementById("phase15MarketTravelStatus");
   const box=document.getElementById("phase15MarketTravelResults");
@@ -3800,6 +3919,7 @@ document.addEventListener("DOMContentLoaded",function(){
     inspector: "Inspector ready. Select a task from Queue to inspect details.",
     governance: "Governance active. Release gate remains locked. Execution is disabled.",
     "business-assistant": "Business Assistant MVP ready. Run Demo Workflow to create daily summary, meeting notes, report draft, email draft, task list, approval gates, and audit.",
+    "quantum-shield": "Tuka QUANTUM SHIELD ready. Run Quantum Shield Verify to check tamper detection, trust channel, key rotation, bridge security, and quantum-ready crypto.",
     settings: "Settings page ready. UI-only settings are safe."
   };
 
@@ -3874,7 +3994,7 @@ document.addEventListener("DOMContentLoaded",function(){
   let reply = tukaPhase11ConversationReply(cmd) || "Ойлголоо. Энэ хүсэлтийг би одоогоор аюулгүй ярианы асуулт гэж бүрэн ангилж чадсангүй. Эрсдэлтэй үйлдэл бол Admin + Guardrail + Judge зөвшөөрөлгүй ажиллахгүй.";
 
     if(c === "help" || c === "/help") {
-      reply = "Safe commands: status, overview, runtime, queue, inspector, governance, settings, business assistant, daily summary, meeting notes, email draft, task list, master plan, phase 0-21, ai connectors, skybridge, voice search pack, codeforge, voice, clear.";
+      reply = "Safe commands: status, overview, runtime, queue, inspector, governance, settings, business assistant, quantum shield, daily summary, meeting notes, email draft, task list, master plan, phase 0-21, ai connectors, skybridge, voice search pack, codeforge, voice, clear.";
     }
     else if(c === "hello" || c === "hi" || c === "hey" || c === "sain uu" || c === "сайн уу" || c === "сайн байна уу") {
       reply = "Сайн байна уу. Намайг Тука гэдэг. Би таны Admin Console дотор text болон voice-оор туслахад бэлэн байна.";
@@ -3934,6 +4054,8 @@ document.addEventListener("DOMContentLoaded",function(){
     else if(c === "phase 21" || c === "agi verify" || c === "phase 21 agi" || c === "phase 21 agi hybrid" || c === "agi hybrid verify" || c === "/phase21") { openTukaPage("phase21-agi-hybrid"); reply = "Phase 21 AGI Hybrid opened. Run AGI Hybrid Verify to check governed AI coordination, no AGI/frontier-model claim, admin-first bounded autonomy, dependency evidence, and no external autonomy gates."; }
     else if(c === "ai connectors" || c === "ai connector" || c === "connect ai" || c === "multi ai" || c === "other ai" || c === "/connectors") { openTukaPage("ai-connectors"); reply = "AI Connectors opened. Run AI Connector Verify to check provider registry, API/local-code/Admin/browser channels, secret safety, data boundary, and no external AI calls without Admin + Guardrail + Judge approval."; }
     else if(c === "skybridge" || c === "skymind" || c === "provider g" || c === "gemini test" || c === "google test" || c === "/skybridge") { openTukaPage("skybridge"); reply = "SkyBridge opened. Run SkyBridge Verify to check Provider G capabilities mapped into Tuka-native names, brand-name hiding, guardrails, secret safety, and no live external provider calls."; }
+    else if(c === "quantum shield" || c === "tuka quantum shield" || c === "net shield" || c === "trust channel" || c === "key rotation" || c === "qkd" || c === "quantum ready" || c === "/quantum-shield") { openTukaPage("quantum-shield"); reply = "Tuka QUANTUM SHIELD opened. Энэ нь hardware QKD гэж худал амлахгүй: tamper detection, signed trust channel, key rotation, bridge security, post-quantum crypto agility-г governed preview хэлбэрээр шалгана."; }
+    else if(c === "run quantum shield" || c === "quantum shield verify" || c === "/quantum-shield-verify") { openTukaPage("quantum-shield"); try{ runQuantumShieldVerify(); }catch(e){} reply = "Quantum Shield verification эхэллээ. Hardware QKD, external provider, live key rotation, live crypto migration бүгд locked хэвээр."; }
     else if(c === "personaplex" || c === "natural duplex" || c === "tuka natural" || c === "tuka natural voice" || c === "local voice runtime" || c === "/natural") { openTukaPage("personaplex-natural"); reply = "Tuka Natural Duplex opened. Энэ нь PersonaPlex local voice runtime-ийг Тука Admin Console дотор readiness, CUDA, server status, governance gate-ээр шалгах хэсэг."; }
     else if(c === "voice search pack" || c === "voice pack" || c === "voxforge" || c === "sourcelens" || c === "personacore" || c === "elevenlabs" || c === "perplexity" || c === "engune" || c === "engine" || c === "/voicepack") { openTukaPage("voice-search-persona"); reply = "Voice Search Pack opened. VoxForge, SourceLens, and PersonaCore are installed as Tuka-native governed adapters. Live external calls, audio/query upload, paid cloud usage, and secret exposure remain blocked until Admin + Guardrail + Judge approve."; }
     else if(c === "mongolcore" || c === "tukamn" || c === "tuka mn" || c === "nomadlens" || c === "homedata" || c === "egune" || c === "egune ai" || c === "монгол хувилбар" || c === "/mongolcore") { openTukaPage("mongolcore"); reply = "MongolCore opened. This is Tuka's own Mongolian AI layer: native Mongolian conversation, TukaMN Voice, NomadLens local-service contracts, and HomeData Guard. It does not copy Egune brand, model weights, datasets, private APIs, prompts, product text, or UI identity."; }

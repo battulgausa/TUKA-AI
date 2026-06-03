@@ -20,6 +20,7 @@ from tools.tuka_business_assistant_mvp_v1 import (
     run_business_assistant,
     verify_business_assistant_mvp,
 )
+from tools.tuka_quantum_shield_v1 import verify_quantum_shield, registry as quantum_shield_registry
 
 app = FastAPI(title="Tuka Admin/Worker API")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -271,6 +272,29 @@ def voice_reliability_status():
         },
         "fail_closed": True,
     }
+
+
+@app.get("/quantum-shield/status")
+def quantum_shield_status():
+    reg = quantum_shield_registry()
+    return {
+        "ok": True,
+        "status": "preview_ready",
+        "public_name": reg["public_name"],
+        "build_sequence": reg["build_sequence"],
+        "runtime": reg["runtime"],
+        "governance": {
+            "no_unbreakable_security_claim": reg["governance"]["no_unbreakable_security_claim"],
+            "no_hardware_qkd_claim": reg["governance"]["no_hardware_qkd_claim"],
+            "preview_only": reg["governance"]["preview_only"],
+            "no_fake_pass": reg["governance"]["no_fake_pass"],
+        },
+    }
+
+
+@app.get("/quantum-shield/verify")
+def quantum_shield_verify():
+    return verify_quantum_shield()
 
 
 # -------- Worker routes --------
