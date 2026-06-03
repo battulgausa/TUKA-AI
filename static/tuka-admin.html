@@ -88,6 +88,7 @@ body{margin:0;font-family:Inter,Arial,sans-serif;background:#f7f7f8;color:#11182
     <button class="nav-btn" data-page="phase13-presentation">Phase 13 Present</button>
     <button class="nav-btn" data-page="phase14-business">Phase 14 Business</button>
     <button class="nav-btn" data-page="business-assistant">Business Assistant</button>
+    <button class="nav-btn" data-page="marketing-intelligence">Marketing Intel</button>
     <button class="nav-btn" data-page="phase15-market-travel">Phase 15 Market</button>
     <button class="nav-btn" data-page="phase16-cad-realestate">Phase 16 CAD</button>
     <button class="nav-btn" data-page="phase17-legal-protection">Phase 17 Legal</button>
@@ -1049,6 +1050,68 @@ Audit log
 Reliable voice rule: browser mic is optional, text fallback is always available, external STT/TTS and spoken execution stay locked until Admin + Guardrail + Judge approve.
 
 Caveat: This MVP does not enable live email send, calendar write, file write/delete, meeting recording, external API, money movement, contract commitment, or autonomous execution.</div>
+        </div>
+      </div>
+
+      <div id="page-marketing-intelligence" class="page">
+        <div class="section">
+          <div class="section-title">Tuka Global Marketing Intelligence Agent</div>
+          <div class="mini-grid">
+            <div class="card"><div class="card-label">Data Rights</div><div class="card-value good">CONSENT</div></div>
+            <div class="card"><div class="card-label">Trend MVP</div><div class="card-value good">TT / IG / YT</div></div>
+            <div class="card"><div class="card-label">Post / Send</div><div class="card-value locked">APPROVAL</div></div>
+            <div class="card"><div class="card-label">Private Data</div><div class="card-value locked">BLOCKED</div></div>
+          </div>
+          <div class="actions">
+            <button class="action-btn primary" onclick="runMarketingIntelDemo()">Run Marketing Demo</button>
+            <button class="action-btn" onclick="runMarketingIntelVerify()">Run Marketing Verify</button>
+            <button class="action-btn" onclick="runMarketingIntelStatus()">Check Marketing Status</button>
+            <button class="action-btn" onclick="openTukaPage('phase14-business')">Phase 14 Business</button>
+          </div>
+          <div class="status-box" id="marketingIntelStatus">Ready. This page runs privacy-first marketing analysis from consented/public sources only.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Marketing Input</div>
+          <div class="actions" style="margin-top:10px">
+            <input id="marketingIntelBrand" class="chat-input" type="text" value="Tuka" placeholder="Brand..." />
+            <input id="marketingIntelProduct" class="chat-input" type="text" value="Business Assistant" placeholder="Product..." />
+            <input id="marketingIntelRegion" class="chat-input" type="text" value="global" placeholder="Region..." />
+          </div>
+          <div class="actions" style="align-items:stretch;margin-top:10px">
+            <textarea id="marketingIntelGoal" class="chat-input" style="min-height:72px;resize:vertical" placeholder="Marketing goal...">Privacy-first business marketing for AI assistant, meeting notes, reports, and workflow automation.</textarea>
+          </div>
+          <div class="actions" style="align-items:stretch;margin-top:10px">
+            <textarea id="marketingIntelCompetitors" class="chat-input" style="min-height:60px;resize:vertical" placeholder="Public competitor URLs, one per line...">https://example.com/public-landing-page</textarea>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Marketing Results</div>
+          <div class="log-box" id="marketingIntelResults">Click Run Marketing Demo.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Privacy / Safety Scope</div>
+          <div class="log-box">Allowed by default:
+- Public trend data
+- Official platform APIs
+- Search engine public data
+- User-provided and consented business data
+
+Blocked without explicit consent and approval:
+- Private messages, emails, search history, phone/social activity
+- Hidden tracking, spying, fake engagement, misinformation
+- Political/manipulative targeting
+- Posting, sending, deleting, ad buying, or external automation
+
+MVP:
+TikTok + Instagram + YouTube Shorts trend analysis
+Content calendar generator
+Competitor public content analysis
+SEO keyword research
+Post/video script generator
+Approval-before-posting system</div>
         </div>
       </div>
 
@@ -3063,6 +3126,125 @@ async function runBusinessVoiceReliability(){
   if(box) box.textContent=lines.join("\n");
 }
 
+async function runMarketingIntelDemo(){
+  const status=document.getElementById("marketingIntelStatus");
+  const box=document.getElementById("marketingIntelResults");
+  if(status) status.textContent="Running Global Marketing Intelligence demo...";
+  if(box) box.textContent="";
+
+  const brand=(document.getElementById("marketingIntelBrand") || {}).value || "Tuka";
+  const product=(document.getElementById("marketingIntelProduct") || {}).value || "Business Assistant";
+  const region=(document.getElementById("marketingIntelRegion") || {}).value || "global";
+  const goal=(document.getElementById("marketingIntelGoal") || {}).value || "privacy-first marketing";
+  const competitorsRaw=(document.getElementById("marketingIntelCompetitors") || {}).value || "";
+  const competitor_urls=competitorsRaw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+
+  const demo=await phase0FetchJson("/marketing-intelligence/demo", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      brand,
+      product,
+      region,
+      language:"mn",
+      goal,
+      consent_granted:true,
+      data_sources:["public_trend_data","official_platform_api","search_engine_public_data"],
+      competitor_urls
+    })
+  });
+  const bridge=await phase0FetchJson("/bridge/status");
+  const runtime=await phase0FetchJson("/observability/unified-health");
+
+  const data=demo.data || {};
+  const rights=(data.trends || {}).rights || {};
+  const actions=data.approvals || {};
+  const checks=[
+    ["Demo API responded", demo.ok && data.ok===true],
+    ["Data rights approved for consented/public sources", rights.ok===true && rights.private_data_read===false && rights.fail_closed===false],
+    ["TikTok/Instagram/YouTube Shorts trend MVP created", data.trends && data.trends.platforms && data.trends.platforms.includes("TikTok") && data.trends.platforms.includes("Instagram") && data.trends.platforms.includes("YouTube Shorts")],
+    ["Content calendar generated", data.calendar && data.calendar.ok===true && data.calendar.calendar && data.calendar.calendar.length>=3],
+    ["Competitor public analysis generated", data.competitor && data.competitor.ok===true],
+    ["SEO keyword research generated", data.seo && data.seo.ok===true],
+    ["Post/video scripts generated", data.assets && data.assets.ok===true],
+    ["Posting blocked without approval", actions.post_content && actions.post_content.blocked===true],
+    ["Delete/ad-buy/tracking blocked without approval", actions.delete_post && actions.delete_post.blocked===true && actions.buy_ad && actions.buy_ad.blocked===true && actions.track_user && actions.track_user.blocked===true],
+    ["Political/manipulative targeting blocked", actions.political_targeting && actions.political_targeting.blocked===true],
+    ["Private data not used", data.trends && data.trends.private_data_read===false && rights.public_data_only_by_default===true],
+    ["Research cites sources", data.seo && data.seo.sources_required===true],
+    ["Execution remains locked", bridge.ok && bridge.data && bridge.data.execution==="disabled" && runtime.ok]
+  ];
+  const passed=checks.filter(x=>x[1]).length;
+  const total=checks.length;
+  const lines=checks.map(x=>(x[1]?"PASS ":"FAIL ")+x[0]);
+  lines.push("");
+  lines.push("Passed: "+passed+"/"+total);
+  lines.push("");
+  lines.push("Trend analysis:");
+  lines.push(JSON.stringify(data.trends || demo.error, null, 2));
+  lines.push("");
+  lines.push("Content calendar:");
+  lines.push(JSON.stringify(data.calendar || {}, null, 2));
+  lines.push("");
+  lines.push("SEO keyword plan:");
+  lines.push(JSON.stringify(data.seo || {}, null, 2));
+  lines.push("");
+  lines.push("Content assets:");
+  lines.push(JSON.stringify(data.assets || {}, null, 2));
+  lines.push("");
+  lines.push("Action gates:");
+  lines.push(JSON.stringify(actions || {}, null, 2));
+
+  if(status){
+    status.textContent = passed===total
+      ? "Global Marketing Intelligence demo PASSED with privacy, trend, SEO, content, approval, and execution-lock evidence."
+      : "Global Marketing Intelligence demo INCOMPLETE. Failed checks: "+(total-passed);
+  }
+  if(box) box.textContent=lines.join("\n");
+}
+
+async function runMarketingIntelVerify(){
+  const status=document.getElementById("marketingIntelStatus");
+  const box=document.getElementById("marketingIntelResults");
+  if(status) status.textContent="Running Global Marketing Intelligence verifier...";
+  const verify=await phase0FetchJson("/marketing-intelligence/verify");
+  const data=verify.data || {};
+  if(status){
+    status.textContent = verify.ok && data.ok
+      ? "Global Marketing Intelligence verifier PASSED: "+data.passed+"/"+data.total
+      : "Global Marketing Intelligence verifier failed or unavailable.";
+  }
+  if(box) box.textContent=JSON.stringify(data || verify.error, null, 2);
+}
+
+async function runMarketingIntelStatus(){
+  const status=document.getElementById("marketingIntelStatus");
+  const box=document.getElementById("marketingIntelResults");
+  if(status) status.textContent="Checking Global Marketing Intelligence status...";
+  const info=await phase0FetchJson("/marketing-intelligence/status");
+  const data=info.data || {};
+  const checks=[
+    ["Status endpoint ok", info.ok && data.ok===true],
+    ["Preview ready", data.status==="preview_ready"],
+    ["MVP platforms registered", data.mvp_platforms && data.mvp_platforms.includes("TikTok") && data.mvp_platforms.includes("Instagram") && data.mvp_platforms.includes("YouTube Shorts")],
+    ["Privacy guards registered", data.guards && data.guards.no_spying===true && data.guards.user_consent_required===true],
+    ["Runtime actions disabled", data.runtime && data.runtime.live_posting_enabled===false && data.runtime.live_tracking_enabled===false]
+  ];
+  const passed=checks.filter(x=>x[1]).length;
+  const total=checks.length;
+  const lines=checks.map(x=>(x[1]?"PASS ":"FAIL ")+x[0]);
+  lines.push("");
+  lines.push("Passed: "+passed+"/"+total);
+  lines.push("");
+  lines.push(JSON.stringify(data || info.error, null, 2));
+  if(status){
+    status.textContent = passed===total
+      ? "Global Marketing Intelligence status PASSED: preview ready and privacy guards active."
+      : "Global Marketing Intelligence status INCOMPLETE. Failed checks: "+(total-passed);
+  }
+  if(box) box.textContent=lines.join("\n");
+}
+
 async function runQuantumShieldVerify(){
   const status=document.getElementById("quantumShieldStatus");
   const box=document.getElementById("quantumShieldResults");
@@ -3786,6 +3968,7 @@ function buildTukaSearchIndex(){
   });
   entries.push({page:"ai-connectors",title:"connect ai / multi ai / other ai",type:"Chat",text:"ai connectors ai connector connect ai multi ai other ai /connectors"});
   entries.push({page:"skybridge",title:"provider g / skymind",type:"Chat",text:"skybridge skymind provider g gemini test google test /skybridge"});
+  entries.push({page:"marketing-intelligence",title:"global marketing intelligence / trend / SEO / content calendar",type:"Chat",text:"marketing intelligence global marketing social media trend analysis tiktok instagram youtube shorts SEO keyword content calendar competitor public content approval before posting no spying privacy first /marketing"});
   entries.push({page:"voice-search-persona",title:"voice search pack / voxforge / sourcelens / personacore",type:"Chat",text:"voice search pack voxforge sourcelens personacore elevenlabs perplexity personaplex engine persona voice grounded search /voicepack"});
   entries.push({page:"personaplex-natural",title:"natural duplex / local voice runtime",type:"Chat",text:"personaplex natural duplex tuka natural voice local voice runtime nvidia persona plex natf2 natm1 cuda 8998 /natural"});
   entries.push({page:"mongolcore",title:"mongolcore / tuka mn / nomadlens / homedata",type:"Chat",text:"mongolcore tuka mn tukamn nomadlens homedata egune mongolian native mongol ai local services no clone /mongolcore"});
@@ -3919,6 +4102,7 @@ document.addEventListener("DOMContentLoaded",function(){
     inspector: "Inspector ready. Select a task from Queue to inspect details.",
     governance: "Governance active. Release gate remains locked. Execution is disabled.",
     "business-assistant": "Business Assistant MVP ready. Run Demo Workflow to create daily summary, meeting notes, report draft, email draft, task list, approval gates, and audit.",
+    "marketing-intelligence": "Global Marketing Intelligence ready. Run Marketing Demo to create privacy-first trend analysis, content calendar, SEO keyword plan, public competitor analysis, and approval-before-posting gates.",
     "quantum-shield": "Tuka QUANTUM SHIELD ready. Run Quantum Shield Verify to check tamper detection, trust channel, key rotation, bridge security, and quantum-ready crypto.",
     settings: "Settings page ready. UI-only settings are safe."
   };
@@ -3994,7 +4178,7 @@ document.addEventListener("DOMContentLoaded",function(){
   let reply = tukaPhase11ConversationReply(cmd) || "Ойлголоо. Энэ хүсэлтийг би одоогоор аюулгүй ярианы асуулт гэж бүрэн ангилж чадсангүй. Эрсдэлтэй үйлдэл бол Admin + Guardrail + Judge зөвшөөрөлгүй ажиллахгүй.";
 
     if(c === "help" || c === "/help") {
-      reply = "Safe commands: status, overview, runtime, queue, inspector, governance, settings, business assistant, quantum shield, daily summary, meeting notes, email draft, task list, master plan, phase 0-21, ai connectors, skybridge, voice search pack, codeforge, voice, clear.";
+      reply = "Safe commands: status, overview, runtime, queue, inspector, governance, settings, business assistant, marketing intelligence, quantum shield, daily summary, meeting notes, email draft, task list, master plan, phase 0-21, ai connectors, skybridge, voice search pack, codeforge, voice, clear.";
     }
     else if(c === "hello" || c === "hi" || c === "hey" || c === "sain uu" || c === "сайн уу" || c === "сайн байна уу") {
       reply = "Сайн байна уу. Намайг Тука гэдэг. Би таны Admin Console дотор text болон voice-оор туслахад бэлэн байна.";
@@ -4045,6 +4229,8 @@ document.addEventListener("DOMContentLoaded",function(){
     else if(c === "phase 14" || c === "business verify" || c === "phase 14 business" || c === "/phase14") { openTukaPage("phase14-business"); reply = "Phase 14 Business opened. Run Business Verify to check business intelligence, CRM/office drafts, accounting lock, CFO summary, cashflow forecast, workflow validation, and admin approval gates."; }
     else if(c === "business assistant" || c === "business mvp" || c === "daily summary" || c === "meeting notes" || c === "email draft" || c === "task list" || c === "/business") { openTukaPage("business-assistant"); reply = "Business Assistant MVP opened. Энэ page дээр өдөр тутмын summary, meeting notes, report draft, email draft, task list, Admin approval, audit workflow-г нэг дор demo хийж шалгана."; }
     else if(c === "run business demo" || c === "business demo" || c === "demo workflow" || c === "/business-demo") { openTukaPage("business-assistant"); try{ runBusinessAssistantDemo(); }catch(e){} reply = "Business Assistant demo workflow эхэллээ. Email send, calendar write, file delete, spend, sign action-ууд approvalгүй blocked хэвээр."; }
+    else if(c === "marketing intelligence" || c === "global marketing" || c === "social marketing" || c === "trend analysis" || c === "content calendar" || c === "seo keyword" || c === "/marketing") { openTukaPage("marketing-intelligence"); reply = "Global Marketing Intelligence opened. Энэ page дээр public/consented data-аар TikTok, Instagram, YouTube Shorts trend, content calendar, SEO keyword, competitor public analysis, approval-before-posting workflow-г шалгана."; }
+    else if(c === "run marketing demo" || c === "marketing demo" || c === "marketing verify" || c === "/marketing-demo") { openTukaPage("marketing-intelligence"); try{ runMarketingIntelDemo(); }catch(e){} reply = "Marketing Intelligence demo эхэллээ. Private message/email/search history уншихгүй, post/send/delete/ad/tracking approvalгүй blocked хэвээр."; }
     else if(c === "phase 15" || c === "market verify" || c === "phase 15 market" || c === "phase 15 travel" || c === "/phase15") { openTukaPage("phase15-market-travel"); reply = "Phase 15 Market/Travel opened. Run Market Verify to check supply chain comparison, fair marketplace ranking, travel comparison, events/tickets, taxi, restaurants, shops, services, and booking/payment gates."; }
     else if(c === "phase 16" || c === "cad verify" || c === "phase 16 cad" || c === "phase 16 real estate" || c === "phase 16 construction" || c === "/phase16") { openTukaPage("phase16-cad-realestate"); reply = "Phase 16 CAD/Real Estate opened. Run CAD Verify to check CAD preview, drawing parser, quantity takeoff, BIM/4D schedule, property evaluation, mortgage preview, rental/remodel drafts, and admin approval gates."; }
     else if(c === "phase 17" || c === "legal verify" || c === "phase 17 legal" || c === "phase 17 compliance" || c === "phase 17 protection" || c === "/phase17") { openTukaPage("phase17-legal-protection"); reply = "Phase 17 Legal/Protection opened. Run Legal Verify to check legal preview, compliance checklist, risk scoring, family/child protection, private mode, content safety, and admin approval gates."; }
