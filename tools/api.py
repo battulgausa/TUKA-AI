@@ -27,6 +27,10 @@ from tools.tuka_global_marketing_intelligence_v1 import (
     run_marketing_mvp,
     verify_global_marketing_intelligence,
 )
+from tools.tuka_core_packs_visibility_v1 import (
+    registry as core_packs_registry,
+    verify_core_packs_visibility,
+)
 
 app = FastAPI(title="Tuka Admin/Worker API")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -355,6 +359,16 @@ def marketing_intelligence_demo(req: MarketingIntelligenceReq):
         competitor_urls=req.competitor_urls,
     )
     return run_marketing_mvp(request)
+
+
+@app.get("/core-packs/status")
+def core_packs_status():
+    return core_packs_registry()
+
+
+@app.get("/core-packs/verify")
+def core_packs_verify():
+    return verify_core_packs_visibility()
 
 
 # -------- Worker routes --------
