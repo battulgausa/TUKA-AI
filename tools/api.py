@@ -21,6 +21,12 @@ from tools.tuka_business_assistant_mvp_v1 import (
     verify_business_assistant_mvp,
 )
 from tools.tuka_quantum_shield_v1 import verify_quantum_shield, registry as quantum_shield_registry
+from tools.tuka_global_marketing_intelligence_v1 import (
+    MarketingRequest,
+    registry as marketing_intelligence_registry,
+    run_marketing_mvp,
+    verify_global_marketing_intelligence,
+)
 
 app = FastAPI(title="Tuka Admin/Worker API")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -61,6 +67,21 @@ class BusinessAssistantReq(BaseModel):
     participants: list[str] = []
     meeting_transcript: str = ""
     inbox_message: str = ""
+
+
+class MarketingIntelligenceReq(BaseModel):
+    brand: str = "Tuka"
+    product: str = "Business Assistant"
+    region: str = "global"
+    language: str = "mn"
+    goal: str = "privacy-first business marketing"
+    consent_granted: bool = True
+    data_sources: list[str] = [
+        "public_trend_data",
+        "official_platform_api",
+        "search_engine_public_data",
+    ]
+    competitor_urls: list[str] = []
 
 
 def _require_token(authorization: Optional[str]) -> Dict[str, Any]:
@@ -295,6 +316,45 @@ def quantum_shield_status():
 @app.get("/quantum-shield/verify")
 def quantum_shield_verify():
     return verify_quantum_shield()
+
+
+@app.get("/marketing-intelligence/status")
+def marketing_intelligence_status():
+    reg = marketing_intelligence_registry()
+    return {
+        "ok": True,
+        "status": "preview_ready",
+        "module": reg["engine"],
+        "public_name": reg["public_name"],
+        "mode": reg["mode"],
+        "platforms": reg["platforms"],
+        "mvp_platforms": reg["mvp_platforms"],
+        "capabilities": reg["capabilities"],
+        "guards": reg["guards"],
+        "runtime": reg["runtime"],
+        "source_policy": reg["source_policy"],
+        "roadmap_position": reg["roadmap_position"],
+    }
+
+
+@app.get("/marketing-intelligence/verify")
+def marketing_intelligence_verify():
+    return verify_global_marketing_intelligence()
+
+
+@app.post("/marketing-intelligence/demo")
+def marketing_intelligence_demo(req: MarketingIntelligenceReq):
+    request = MarketingRequest(
+        brand=req.brand,
+        product=req.product,
+        region=req.region,
+        language=req.language,
+        goal=req.goal,
+        consent_granted=req.consent_granted,
+        data_sources=req.data_sources,
+        competitor_urls=req.competitor_urls,
+    )
+    return run_marketing_mvp(request)
 
 
 # -------- Worker routes --------
