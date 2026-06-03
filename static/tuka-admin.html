@@ -88,6 +88,7 @@ body{margin:0;font-family:Inter,Arial,sans-serif;background:#f7f7f8;color:#11182
     <button class="nav-btn" data-page="phase13-presentation">Phase 13 Present</button>
     <button class="nav-btn" data-page="phase14-business">Phase 14 Business</button>
     <button class="nav-btn" data-page="business-assistant">Business Assistant</button>
+    <button class="nav-btn" data-page="core-packs">Core Packs</button>
     <button class="nav-btn" data-page="marketing-intelligence">Marketing Intel</button>
     <button class="nav-btn" data-page="phase15-market-travel">Phase 15 Market</button>
     <button class="nav-btn" data-page="phase16-cad-realestate">Phase 16 CAD</button>
@@ -1050,6 +1051,58 @@ Audit log
 Reliable voice rule: browser mic is optional, text fallback is always available, external STT/TTS and spoken execution stay locked until Admin + Guardrail + Judge approve.
 
 Caveat: This MVP does not enable live email send, calendar write, file write/delete, meeting recording, external API, money movement, contract commitment, or autonomous execution.</div>
+        </div>
+      </div>
+
+      <div id="page-core-packs" class="page">
+        <div class="section">
+          <div class="section-title">Tuka Core Packs Visibility</div>
+          <div class="mini-grid">
+            <div class="card"><div class="card-label">Packs</div><div class="card-value good">13</div></div>
+            <div class="card"><div class="card-label">Admin UI</div><div class="card-value good">VISIBLE</div></div>
+            <div class="card"><div class="card-label">Verify</div><div class="card-value good">REAL</div></div>
+            <div class="card"><div class="card-label">Execution</div><div class="card-value locked">LOCKED</div></div>
+          </div>
+          <div class="actions">
+            <button class="action-btn primary" onclick="runCorePacksVerify()">Run Core Packs Verify</button>
+            <button class="action-btn" onclick="runCorePacksStatus()">Check Core Packs Status</button>
+            <button class="action-btn" onclick="openTukaPage('business-assistant')">Business Assistant</button>
+            <button class="action-btn" onclick="openTukaPage('marketing-intelligence')">Marketing Intel</button>
+            <button class="action-btn" onclick="openTukaPage('quantum-shield')">Quantum Shield</button>
+          </div>
+          <div class="status-box" id="corePacksStatus">Ready. This page shows the modules that were previously hidden in tools/*.py.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Visible Module List</div>
+          <div class="log-box" id="corePacksList">Tuka Global Marketing Intelligence Agent
+Tuka Quantum Shield
+Business Assistant page
+Tuka Platform Core Pack v1
+Tuka Business Assistant MVP v1
+Tuka Face Identity / Visual Privacy Guard v1
+Tuka Business Operations Agent System v1
+Tuka Skill Registry v1
+Tuka Personal + Business Assistant v1
+Tuka Studio Preview Builder v1
+Tuka Merge Gate v1
+Tuka PR Lifecycle Gate v1
+Tuka Business Executive Assistant v1
+Tuka Global Network Compatibility v1</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Core Pack Results</div>
+          <div class="log-box" id="corePacksResults">Click Run Core Packs Verify.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Safety State</div>
+          <div class="log-box">These packs are visible and verifiable.
+Execution remains disabled.
+External actions remain disabled.
+Admin approval remains required.
+No fake pass rule: UI says PASS only after /core-packs/verify returns real ok evidence.</div>
         </div>
       </div>
 
@@ -3126,6 +3179,86 @@ async function runBusinessVoiceReliability(){
   if(box) box.textContent=lines.join("\n");
 }
 
+function renderCorePackRows(packs){
+  return (packs || []).map(pack => {
+    const passText = pack.passed !== undefined && pack.passed !== null ? " "+pack.passed+"/"+pack.total : "";
+    return (pack.ok ? "PASS " : "FAIL ") + pack.name + passText + "\n  file: " + pack.file + "\n  surface: " + pack.surface;
+  }).join("\n\n");
+}
+
+async function runCorePacksStatus(){
+  const status=document.getElementById("corePacksStatus");
+  const box=document.getElementById("corePacksResults");
+  const list=document.getElementById("corePacksList");
+  if(status) status.textContent="Checking Core Packs status...";
+  const info=await phase0FetchJson("/core-packs/status");
+  const data=info.data || {};
+  const packs=data.packs || [];
+  const checks=[
+    ["Status endpoint ok", info.ok && data.ok===true],
+    ["All visible pack records returned", packs.length>=13],
+    ["Global Marketing visible", packs.some(x=>x.name==="Tuka Global Marketing Intelligence Agent")],
+    ["Quantum Shield visible", packs.some(x=>x.name==="Tuka Quantum Shield")],
+    ["Business Assistant MVP visible", packs.some(x=>x.name==="Tuka Business Assistant MVP v1")],
+    ["Platform Core Pack visible", packs.some(x=>x.name==="Tuka Platform Core Pack v1")],
+    ["Execution disabled", data.safety && data.safety.execution_enabled===false]
+  ];
+  const passed=checks.filter(x=>x[1]).length;
+  const total=checks.length;
+  const lines=checks.map(x=>(x[1]?"PASS ":"FAIL ")+x[0]);
+  lines.push("");
+  lines.push("Passed: "+passed+"/"+total);
+  lines.push("");
+  lines.push(JSON.stringify(data.safety || {}, null, 2));
+  if(list) list.textContent=(packs || []).map(x=>x.name+" - "+x.file+" - "+x.surface).join("\n");
+  if(status){
+    status.textContent = passed===total
+      ? "Core Packs status PASSED: all requested packs are visible in Admin Console."
+      : "Core Packs status INCOMPLETE. Failed checks: "+(total-passed);
+  }
+  if(box) box.textContent=lines.join("\n");
+}
+
+async function runCorePacksVerify(){
+  const status=document.getElementById("corePacksStatus");
+  const box=document.getElementById("corePacksResults");
+  const list=document.getElementById("corePacksList");
+  if(status) status.textContent="Running Core Packs verifier...";
+  if(box) box.textContent="";
+  const verify=await phase0FetchJson("/core-packs/verify");
+  const bridge=await phase0FetchJson("/bridge/status");
+  const data=verify.data || {};
+  const packs=data.packs || [];
+  const checks=[
+    ["Core Packs verifier responded", verify.ok && data.ok===true],
+    ["All files exist", data.checks && data.checks.all_files_exist===true],
+    ["All verifiers ok", data.checks && data.checks.all_verifiers_ok===true],
+    ["Admin surfaces declared", data.checks && data.checks.admin_surfaces_declared===true],
+    ["At least 13 packs visible", data.pack_count>=13],
+    ["Global Marketing pack present", packs.some(x=>x.name==="Tuka Global Marketing Intelligence Agent" && x.ok===true)],
+    ["Quantum Shield pack present", packs.some(x=>x.name==="Tuka Quantum Shield" && x.ok===true)],
+    ["Business Assistant pack present", packs.some(x=>x.name==="Tuka Business Assistant MVP v1" && x.ok===true)],
+    ["Platform Core Pack present", packs.some(x=>x.name==="Tuka Platform Core Pack v1" && x.ok===true)],
+    ["Execution remains locked", bridge.ok && bridge.data && bridge.data.execution==="disabled"]
+  ];
+  const passed=checks.filter(x=>x[1]).length;
+  const total=checks.length;
+  const lines=checks.map(x=>(x[1]?"PASS ":"FAIL ")+x[0]);
+  lines.push("");
+  lines.push("Browser Passed: "+passed+"/"+total);
+  lines.push("Verifier: "+(data.passed || 0)+"/"+(data.total || 0));
+  lines.push("Pack count: "+(data.pack_count || 0));
+  lines.push("");
+  lines.push(renderCorePackRows(packs));
+  if(list) list.textContent=(packs || []).map(x=>x.name+" - "+x.file+" - "+x.surface).join("\n");
+  if(status){
+    status.textContent = passed===total
+      ? "Core Packs verification PASSED. Hidden modules are now visible and verifiable."
+      : "Core Packs verification INCOMPLETE. Failed checks: "+(total-passed);
+  }
+  if(box) box.textContent=lines.join("\n");
+}
+
 async function runMarketingIntelDemo(){
   const status=document.getElementById("marketingIntelStatus");
   const box=document.getElementById("marketingIntelResults");
@@ -3968,6 +4101,7 @@ function buildTukaSearchIndex(){
   });
   entries.push({page:"ai-connectors",title:"connect ai / multi ai / other ai",type:"Chat",text:"ai connectors ai connector connect ai multi ai other ai /connectors"});
   entries.push({page:"skybridge",title:"provider g / skymind",type:"Chat",text:"skybridge skymind provider g gemini test google test /skybridge"});
+  entries.push({page:"core-packs",title:"core packs / all merged modules / visibility",type:"Chat",text:"core packs all modules visibility platform core pack business assistant mvp face identity business operations skill registry personal business assistant studio preview builder merge gate pr lifecycle gate quantum shield marketing intelligence /core-packs"});
   entries.push({page:"marketing-intelligence",title:"global marketing intelligence / trend / SEO / content calendar",type:"Chat",text:"marketing intelligence global marketing social media trend analysis tiktok instagram youtube shorts SEO keyword content calendar competitor public content approval before posting no spying privacy first /marketing"});
   entries.push({page:"voice-search-persona",title:"voice search pack / voxforge / sourcelens / personacore",type:"Chat",text:"voice search pack voxforge sourcelens personacore elevenlabs perplexity personaplex engine persona voice grounded search /voicepack"});
   entries.push({page:"personaplex-natural",title:"natural duplex / local voice runtime",type:"Chat",text:"personaplex natural duplex tuka natural voice local voice runtime nvidia persona plex natf2 natm1 cuda 8998 /natural"});
@@ -4102,6 +4236,7 @@ document.addEventListener("DOMContentLoaded",function(){
     inspector: "Inspector ready. Select a task from Queue to inspect details.",
     governance: "Governance active. Release gate remains locked. Execution is disabled.",
     "business-assistant": "Business Assistant MVP ready. Run Demo Workflow to create daily summary, meeting notes, report draft, email draft, task list, approval gates, and audit.",
+    "core-packs": "Core Packs ready. Run Core Packs Verify to show all merged v1 modules, files, surfaces, pass counts, and safety state.",
     "marketing-intelligence": "Global Marketing Intelligence ready. Run Marketing Demo to create privacy-first trend analysis, content calendar, SEO keyword plan, public competitor analysis, and approval-before-posting gates.",
     "quantum-shield": "Tuka QUANTUM SHIELD ready. Run Quantum Shield Verify to check tamper detection, trust channel, key rotation, bridge security, and quantum-ready crypto.",
     settings: "Settings page ready. UI-only settings are safe."
@@ -4178,7 +4313,7 @@ document.addEventListener("DOMContentLoaded",function(){
   let reply = tukaPhase11ConversationReply(cmd) || "Ойлголоо. Энэ хүсэлтийг би одоогоор аюулгүй ярианы асуулт гэж бүрэн ангилж чадсангүй. Эрсдэлтэй үйлдэл бол Admin + Guardrail + Judge зөвшөөрөлгүй ажиллахгүй.";
 
     if(c === "help" || c === "/help") {
-      reply = "Safe commands: status, overview, runtime, queue, inspector, governance, settings, business assistant, marketing intelligence, quantum shield, daily summary, meeting notes, email draft, task list, master plan, phase 0-21, ai connectors, skybridge, voice search pack, codeforge, voice, clear.";
+      reply = "Safe commands: status, overview, runtime, queue, inspector, governance, settings, core packs, business assistant, marketing intelligence, quantum shield, daily summary, meeting notes, email draft, task list, master plan, phase 0-21, ai connectors, skybridge, voice search pack, codeforge, voice, clear.";
     }
     else if(c === "hello" || c === "hi" || c === "hey" || c === "sain uu" || c === "сайн уу" || c === "сайн байна уу") {
       reply = "Сайн байна уу. Намайг Тука гэдэг. Би таны Admin Console дотор text болон voice-оор туслахад бэлэн байна.";
@@ -4229,6 +4364,8 @@ document.addEventListener("DOMContentLoaded",function(){
     else if(c === "phase 14" || c === "business verify" || c === "phase 14 business" || c === "/phase14") { openTukaPage("phase14-business"); reply = "Phase 14 Business opened. Run Business Verify to check business intelligence, CRM/office drafts, accounting lock, CFO summary, cashflow forecast, workflow validation, and admin approval gates."; }
     else if(c === "business assistant" || c === "business mvp" || c === "daily summary" || c === "meeting notes" || c === "email draft" || c === "task list" || c === "/business") { openTukaPage("business-assistant"); reply = "Business Assistant MVP opened. Энэ page дээр өдөр тутмын summary, meeting notes, report draft, email draft, task list, Admin approval, audit workflow-г нэг дор demo хийж шалгана."; }
     else if(c === "run business demo" || c === "business demo" || c === "demo workflow" || c === "/business-demo") { openTukaPage("business-assistant"); try{ runBusinessAssistantDemo(); }catch(e){} reply = "Business Assistant demo workflow эхэллээ. Email send, calendar write, file delete, spend, sign action-ууд approvalгүй blocked хэвээр."; }
+    else if(c === "core packs" || c === "all modules" || c === "show all modules" || c === "tuka packs" || c === "/core-packs") { openTukaPage("core-packs"); reply = "Core Packs opened. Энд өмнө нь tools дотор байсан бүх v1 module-ууд нэр, файл, surface, verifier evidence-тэйгээ харагдана."; }
+    else if(c === "run core packs" || c === "core packs verify" || c === "/core-packs-verify") { openTukaPage("core-packs"); try{ runCorePacksVerify(); }catch(e){} reply = "Core Packs verification эхэллээ. Энэ нь module file, verifier, Admin surface, execution lock бүгдийг шалгана."; }
     else if(c === "marketing intelligence" || c === "global marketing" || c === "social marketing" || c === "trend analysis" || c === "content calendar" || c === "seo keyword" || c === "/marketing") { openTukaPage("marketing-intelligence"); reply = "Global Marketing Intelligence opened. Энэ page дээр public/consented data-аар TikTok, Instagram, YouTube Shorts trend, content calendar, SEO keyword, competitor public analysis, approval-before-posting workflow-г шалгана."; }
     else if(c === "run marketing demo" || c === "marketing demo" || c === "marketing verify" || c === "/marketing-demo") { openTukaPage("marketing-intelligence"); try{ runMarketingIntelDemo(); }catch(e){} reply = "Marketing Intelligence demo эхэллээ. Private message/email/search history уншихгүй, post/send/delete/ad/tracking approvalгүй blocked хэвээр."; }
     else if(c === "phase 15" || c === "market verify" || c === "phase 15 market" || c === "phase 15 travel" || c === "/phase15") { openTukaPage("phase15-market-travel"); reply = "Phase 15 Market/Travel opened. Run Market Verify to check supply chain comparison, fair marketplace ranking, travel comparison, events/tickets, taxi, restaurants, shops, services, and booking/payment gates."; }
