@@ -2270,7 +2270,7 @@ function tukaPhase11ConversationReply(command){
     tukaConversationState.lastIntent="presence";
     return "Тийм, би таныг сонсож байна. Mic таны яриаг text болгож оруулж байна, би тэр text дээр үндэслээд хариулж байна.";
   }
-  if(isExact(["hello","hi","hey","hallo","sain uu","сайн уу","сайн байна уу","хэллоу","хэллоуин","хелло","хэло"]) || hasAny(["сайн уу","сайн байна","hello","hi tuka","hey tuka","хэллоу","хэллоуин","хелло","хэло"])){
+  if(isExact(["hello","hi","hey","hallo","sain uu","сайн уу","сайн байна уу","хэллоу","хэллов","хэлло","хэллоуин","хелло","хэло","хэйлов"]) || hasAny(["сайн уу","сайн байна","hello","hi tuka","hey tuka","хэллоу","хэллов","хэлло","хэллоуин","хелло","хэло","хэйлов"])){
     tukaConversationState.lastIntent="greeting";
     return "Сайн байна уу. Намайг Тука гэдэг. Би таны Admin Console дотор text болон voice-оор туслахад бэлэн байна.";
   }
@@ -2359,7 +2359,7 @@ function safeSendAdminChat(commandOverride){
   let reply=tukaPhase11ConversationReply(cmd) || "Ойлголоо. Энэ хүсэлтийг би одоогоор аюулгүй ярианы асуулт гэж бүрэн ангилж чадсангүй. Эрсдэлтэй үйлдэл бол Admin + Guardrail + Judge зөвшөөрөлгүй ажиллахгүй.";
 
   if(c.includes("status")) reply="Runtime healthy. Governance active. Release gate locked. Execution disabled.";
-  else if(["hello","hi","hey","sain uu","сайн уу","сайн байна уу"].includes(c)) {
+  else if(["hello","hi","hey","hallo","sain uu","сайн уу","сайн байна уу","хэллоу","хэллов","хэлло","хэллоуин","хелло","хэло","хэйлов"].includes(c)) {
     reply="Сайн байна уу. Тука энд байна. Та status, queue, governance, voice, codeforge, skybridge, phase 0-21 гэж асууж болно.";
   }
   else if(c.includes("чадвар") || c.includes("what can you do") || c.includes("help")) {
@@ -4804,7 +4804,7 @@ document.addEventListener("DOMContentLoaded",function(){
     if(c === "help" || c === "/help") {
       reply = "Safe commands: status, overview, runtime, queue, inspector, governance, settings, core packs, business assistant, marketing intelligence, marketing platform, mode engine, quantum shield, daily summary, meeting notes, email draft, task list, master plan, phase 0-21, ai connectors, skybridge, voice search pack, codeforge, voice, clear.";
     }
-    else if(c === "hello" || c === "hi" || c === "hey" || c === "sain uu" || c === "сайн уу" || c === "сайн байна уу") {
+    else if(c === "hello" || c === "hi" || c === "hey" || c === "hallo" || c === "sain uu" || c === "сайн уу" || c === "сайн байна уу" || c === "хэллоу" || c === "хэллов" || c === "хэлло" || c === "хэллоуин" || c === "хелло" || c === "хэло" || c === "хэйлов") {
       reply = "Сайн байна уу. Намайг Тука гэдэг. Би таны Admin Console дотор text болон voice-оор туслахад бэлэн байна.";
     }
     else if(c.includes("speak english") || c.includes("do you speak english") || c.includes("can you speak english") || c.includes("english хэл") || c.includes("english yaridag")) {
