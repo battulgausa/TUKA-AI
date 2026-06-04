@@ -49,6 +49,11 @@ from tools.tuka_personaplex_diagnostics_v1 import (
     status as personaplex_diagnostics_status,
     verify as verify_personaplex_diagnostics,
 )
+from tools.tuka_voice_first_executive_ux_v1 import (
+    demo as voice_first_executive_demo,
+    registry as voice_first_executive_registry,
+    verify as verify_voice_first_executive_ux,
+)
 
 app = FastAPI(title="Tuka Admin/Worker API")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -458,6 +463,24 @@ def personaplex_bridge_contract_route():
 @app.get("/personaplex/verify")
 def personaplex_verify():
     return verify_personaplex_diagnostics()
+
+
+@app.get("/voice-executive-ux/status")
+def voice_executive_ux_status():
+    return voice_first_executive_registry()
+
+
+@app.get("/voice-executive-ux/verify")
+def voice_executive_ux_verify():
+    return verify_voice_first_executive_ux()
+
+
+@app.post("/voice-executive-ux/demo")
+def voice_executive_ux_demo(payload: Dict[str, Any] | None = None):
+    command = "Hey Tuka, manage my day"
+    if payload and isinstance(payload.get("command"), str):
+        command = payload["command"]
+    return voice_first_executive_demo(command)
 
 
 @app.get("/core-packs/status")

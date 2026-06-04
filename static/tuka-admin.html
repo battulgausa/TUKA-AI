@@ -92,6 +92,7 @@ body{margin:0;font-family:Inter,Arial,sans-serif;background:#f7f7f8;color:#11182
     <button class="nav-btn" data-page="marketing-intelligence">Marketing Intel</button>
     <button class="nav-btn" data-page="marketing-platform">Marketing Platform</button>
     <button class="nav-btn" data-page="mode-engine">Mode Engine</button>
+    <button class="nav-btn" data-page="voice-executive-ux">Voice Executive UX</button>
     <button class="nav-btn" data-page="phase15-market-travel">Phase 15 Market</button>
     <button class="nav-btn" data-page="phase16-cad-realestate">Phase 16 CAD</button>
     <button class="nav-btn" data-page="phase17-legal-protection">Phase 17 Legal</button>
@@ -1189,6 +1190,61 @@ TRUTHMODE must be direct but not abusive.
 REDTEAM must find risks without giving harmful exploit steps.
 VERIFY must show evidence or uncertainty.
 Admin approval remains required for real actions.</div>
+        </div>
+      </div>
+
+      <div id="page-voice-executive-ux" class="page">
+        <div class="section">
+          <div class="section-title">Tuka Voice-First Executive UX</div>
+          <div class="mini-grid">
+            <div class="card"><div class="card-label">Outside</div><div class="card-value good">SIMPLE</div></div>
+            <div class="card"><div class="card-label">Inside</div><div class="card-value good">POWERFUL</div></div>
+            <div class="card"><div class="card-label">Wake Word</div><div class="card-value locked">GUARDED</div></div>
+            <div class="card"><div class="card-label">Actions</div><div class="card-value locked">APPROVAL</div></div>
+          </div>
+          <div class="actions">
+            <button class="action-btn primary" onclick="runVoiceExecutiveDemo()">Run UX Demo</button>
+            <button class="action-btn" onclick="runVoiceExecutiveVerify()">Run UX Verify</button>
+            <button class="action-btn" onclick="runVoiceExecutiveStatus()">Check UX Status</button>
+            <button class="action-btn" onclick="openTukaPage('phase11-voice')">Phase 11 Voice</button>
+            <button class="action-btn" onclick="openTukaPage('business-assistant')">Business Assistant</button>
+          </div>
+          <div class="status-box" id="voiceExecutiveStatus">Ready. Tuka's product principle: simple outside, powerful inside.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Talk to Tuka</div>
+          <div class="actions" style="align-items:stretch;margin-top:10px">
+            <input id="voiceExecutiveCommand" class="chat-input" type="text" value="Hey Tuka, manage my day" placeholder="Hey Tuka..." />
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Product Philosophy</div>
+          <div class="log-box">Simple Outside:
+Talk to Tuka
+Hey Tuka, do this
+One assistant surface
+One voice-first command path
+
+Powerful Inside:
+Planner
+Judge
+Context Engine
+Skill Registry
+Memory
+Audit Log
+Governance
+Admin Approval
+
+No hidden always-listening microphone
+No unapproved desktop control
+No send/write/delete/spend without approval</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Voice Executive Results</div>
+          <div class="log-box" id="voiceExecutiveResults">Click Run UX Demo.</div>
         </div>
       </div>
 
@@ -3701,6 +3757,66 @@ async function runModeEngineVerify(){
   if(box) box.textContent=JSON.stringify(data || verify.error, null, 2);
 }
 
+async function runVoiceExecutiveStatus(){
+  const status=document.getElementById("voiceExecutiveStatus");
+  const box=document.getElementById("voiceExecutiveResults");
+  if(status) status.textContent="Checking Voice-First Executive UX status...";
+  const info=await phase0FetchJson("/voice-executive-ux/status");
+  const data=info.data || {};
+  const checks=[
+    ["Status endpoint ok", info.ok && data.ok===true],
+    ["Simple outside principle", data.principle==="Simple outside, powerful inside"],
+    ["Hey Tuka future wake word present", data.capabilities && data.capabilities.wake_word_future && data.capabilities.wake_word_future.name==="Hey Tuka"],
+    ["Always-listening off by default", data.capabilities && data.capabilities.wake_word_future && data.capabilities.wake_word_future.always_listening_default===false],
+    ["Governance guards visible", data.guards && data.guards.no_unapproved_desktop_control===true && data.guards.no_hidden_always_listening===true]
+  ];
+  const passed=checks.filter(x=>x[1]).length;
+  const total=checks.length;
+  if(status) status.textContent=passed===total ? "Voice Executive UX status PASSED: "+passed+"/"+total : "Voice Executive UX status incomplete: "+passed+"/"+total;
+  if(box) box.textContent=checks.map(x=>(x[1]?"PASS ":"FAIL ")+x[0]).join("\n")+"\n\nStatus: "+JSON.stringify(data, null, 2);
+}
+
+async function runVoiceExecutiveDemo(){
+  const status=document.getElementById("voiceExecutiveStatus");
+  const box=document.getElementById("voiceExecutiveResults");
+  const input=document.getElementById("voiceExecutiveCommand");
+  const command=(input && input.value) || "Hey Tuka, manage my day";
+  if(status) status.textContent="Running Voice-First Executive UX demo...";
+  const demo=await phase0FetchJson("/voice-executive-ux/demo", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({command})
+  });
+  const data=demo.data || {};
+  const checks=[
+    ["Demo endpoint ok", demo.ok && data.ok===true],
+    ["Simple user surface reply", !!data.user_surface_reply],
+    ["Internal flow visible", Array.isArray(data.internal_flow) && data.internal_flow.includes("Plan safe steps")],
+    ["No real execution", data.actions_executed===false],
+    ["Approval required", data.approval_required===true],
+    ["Audit required", data.audit_required===true],
+    ["Risky actions blocked", Array.isArray(data.blocked_actions) && data.blocked_actions.length>=5]
+  ];
+  const passed=checks.filter(x=>x[1]).length;
+  const total=checks.length;
+  if(status) status.textContent=passed===total ? "Voice Executive UX demo PASSED: "+passed+"/"+total : "Voice Executive UX demo incomplete: "+passed+"/"+total;
+  if(box) box.textContent=checks.map(x=>(x[1]?"PASS ":"FAIL ")+x[0]).join("\n")+"\n\nDemo: "+JSON.stringify(data, null, 2);
+}
+
+async function runVoiceExecutiveVerify(){
+  const status=document.getElementById("voiceExecutiveStatus");
+  const box=document.getElementById("voiceExecutiveResults");
+  if(status) status.textContent="Running Voice-First Executive UX verifier...";
+  const verify=await phase0FetchJson("/voice-executive-ux/verify");
+  const data=verify.data || {};
+  if(status){
+    status.textContent = verify.ok && data.ok
+      ? "Voice Executive UX verifier PASSED: "+data.passed+"/"+data.total
+      : "Voice Executive UX verifier FAILED or incomplete.";
+  }
+  if(box) box.textContent=JSON.stringify(data || verify.error, null, 2);
+}
+
 async function runMarketingIntelDemo(){
   const status=document.getElementById("marketingIntelStatus");
   const box=document.getElementById("marketingIntelResults");
@@ -4640,6 +4756,7 @@ function buildTukaSearchIndex(){
   entries.push({page:"marketing-intelligence",title:"global marketing intelligence / trend / SEO / content calendar",type:"Chat",text:"marketing intelligence global marketing social media trend analysis tiktok instagram youtube shorts SEO keyword content calendar competitor public content approval before posting no spying privacy first /marketing"});
   entries.push({page:"marketing-platform",title:"marketing platform / seo social content competitor analytics ads brand video growth",type:"Chat",text:"marketing platform tuka marketing brain seo agent social agent content agent research agent competitor agent analytics agent ads agent brand agent video agent growth agent solar energy mongolia ceo marketing report /marketing-platform"});
   entries.push({page:"mode-engine",title:"mode engine / truthmode / redteam / execute / verify / strategy",type:"Chat",text:"mode engine prompt mode thinking mode truthmode redteam unlearn businesscoach startupmode attentionmode eli10 socrates firstprinciples human 80/20 execute verify strategy /mode-engine"});
+  entries.push({page:"voice-executive-ux",title:"voice executive ux / hey tuka / desktop actions",type:"Voice",text:"voice executive ux hey tuka talk to tuka jarvis style simple outside powerful inside desktop actions executive assistant wake word office assistant manage my day /voice-executive"});
   entries.push({page:"voice-search-persona",title:"voice search pack / voxforge / sourcelens / personacore",type:"Chat",text:"voice search pack voxforge sourcelens personacore elevenlabs perplexity personaplex engine persona voice grounded search /voicepack"});
   entries.push({page:"personaplex-natural",title:"natural duplex / local voice runtime",type:"Chat",text:"personaplex natural duplex tuka natural voice local voice runtime nvidia persona plex natf2 natm1 cuda 8998 /natural"});
   entries.push({page:"personaplex-diagnostics",title:"personaplex diagnostics / bridge / 8998",type:"Voice",text:"personaplex diagnostics natural voice diagnostics bridge contract moshi server local voice server 8998 cuda gpu hf token venv /personaplex"});
@@ -4778,6 +4895,7 @@ document.addEventListener("DOMContentLoaded",function(){
     "marketing-intelligence": "Global Marketing Intelligence ready. Run Marketing Demo to create privacy-first trend analysis, content calendar, SEO keyword plan, public competitor analysis, and approval-before-posting gates.",
     "marketing-platform": "Marketing Platform ready. Run Platform Demo to check Tuka Marketing Brain, SEO, Social, Content, Research, Competitor, Analytics, Ads, Brand, Video, and Growth agents.",
     "mode-engine": "Mode Engine ready. Select TRUTHMODE, REDTEAM, UNLEARN, BUSINESSCOACH, STARTUPMODE, ATTENTIONMODE, ELI10, SOCRATES, FIRSTPRINCIPLES, HUMAN, 80/20, EXECUTE, VERIFY, or STRATEGY.",
+    "voice-executive-ux": "Voice Executive UX ready. Run UX Demo to check Hey Tuka, Talk to Tuka, desktop action bridge planning, executive assistant workflow, and approval gates.",
     "quantum-shield": "Tuka QUANTUM SHIELD ready. Run Quantum Shield Verify to check tamper detection, trust channel, key rotation, bridge security, and quantum-ready crypto.",
     settings: "Settings page ready. UI-only settings are safe."
   };
@@ -4915,6 +5033,8 @@ document.addEventListener("DOMContentLoaded",function(){
     else if(c === "run marketing platform" || c === "platform demo" || c === "marketing platform verify" || c === "/marketing-platform-demo") { openTukaPage("marketing-platform"); try{ runMarketingPlatformDemo(); }catch(e){} reply = "Marketing Platform demo эхэллээ. Энэ нь copycat биш, privacy-first Tuka-native marketing system гэдгийг шалгана."; }
     else if(c === "mode engine" || c === "prompt mode" || c === "thinking mode" || c === "truthmode" || c === "redteam" || c === "execute mode" || c === "verify mode" || c === "strategy mode" || c === "/mode-engine") { openTukaPage("mode-engine"); reply = "Mode Engine opened. Энд 14 official Tuka reasoning/personality mode харагдаж, prompt дээр хэрэглэж шалгана."; }
     else if(c === "run mode engine" || c === "mode verify" || c === "mode engine verify" || c === "/mode-engine-verify") { openTukaPage("mode-engine"); try{ runModeEngineVerify(); }catch(e){} reply = "Mode Engine verification эхэллээ. Mode нь governance/execution lock-ийг bypass хийхгүй."; }
+    else if(c === "voice executive ux" || c === "hey tuka" || c === "talk to tuka" || c === "desktop actions" || c === "executive voice" || c === "jarvis mode" || c === "/voice-executive") { openTukaPage("voice-executive-ux"); reply = "Voice Executive UX opened. Энэ нь Jarvis-ийг хуулбарлахгүй: Tuka-ийн Simple Outside + Powerful Inside зарчим, Hey Tuka future wake word, desktop action bridge, executive assistant, governance gate-ийг шалгана."; }
+    else if(c === "run voice executive" || c === "voice executive verify" || c === "run hey tuka" || c === "/voice-executive-verify") { openTukaPage("voice-executive-ux"); try{ runVoiceExecutiveVerify(); }catch(e){} reply = "Voice Executive UX verification эхэллээ. Hidden always-listening, unapproved desktop control, send/write/delete/spend бүгд locked хэвээр."; }
     else if(c === "phase 15" || c === "market verify" || c === "phase 15 market" || c === "phase 15 travel" || c === "/phase15") { openTukaPage("phase15-market-travel"); reply = "Phase 15 Market/Travel opened. Run Market Verify to check supply chain comparison, fair marketplace ranking, travel comparison, events/tickets, taxi, restaurants, shops, services, and booking/payment gates."; }
     else if(c === "phase 16" || c === "cad verify" || c === "phase 16 cad" || c === "phase 16 real estate" || c === "phase 16 construction" || c === "/phase16") { openTukaPage("phase16-cad-realestate"); reply = "Phase 16 CAD/Real Estate opened. Run CAD Verify to check CAD preview, drawing parser, quantity takeoff, BIM/4D schedule, property evaluation, mortgage preview, rental/remodel drafts, and admin approval gates."; }
     else if(c === "phase 17" || c === "legal verify" || c === "phase 17 legal" || c === "phase 17 compliance" || c === "phase 17 protection" || c === "/phase17") { openTukaPage("phase17-legal-protection"); reply = "Phase 17 Legal/Protection opened. Run Legal Verify to check legal preview, compliance checklist, risk scoring, family/child protection, private mode, content safety, and admin approval gates."; }
