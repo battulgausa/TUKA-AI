@@ -37,6 +37,12 @@ from tools.tuka_marketing_intelligence_platform_v1 import (
     run_platform_demo,
     verify_marketing_intelligence_platform,
 )
+from tools.tuka_mode_engine_v1 import (
+    ModeRequest,
+    apply_mode,
+    registry as mode_engine_registry,
+    verify_mode_engine,
+)
 
 app = FastAPI(title="Tuka Admin/Worker API")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -107,6 +113,12 @@ class MarketingPlatformReq(BaseModel):
         "user_provided_data",
     ]
     competitor_urls: list[str] = []
+
+
+class ModeEngineReq(BaseModel):
+    text: str = "TRUTHMODE: Миний бизнес санааг үнэл"
+    mode: str | None = None
+    language: str = "mn"
 
 
 def _require_token(authorization: Optional[str]) -> Dict[str, Any]:
@@ -405,6 +417,21 @@ def marketing_platform_demo(req: MarketingPlatformReq):
         competitor_urls=req.competitor_urls,
     )
     return run_platform_demo(request)
+
+
+@app.get("/mode-engine/status")
+def mode_engine_status():
+    return mode_engine_registry()
+
+
+@app.get("/mode-engine/verify")
+def mode_engine_verify():
+    return verify_mode_engine()
+
+
+@app.post("/mode-engine/apply")
+def mode_engine_apply(req: ModeEngineReq):
+    return apply_mode(ModeRequest(text=req.text, mode=req.mode, language=req.language))
 
 
 @app.get("/core-packs/status")
