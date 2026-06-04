@@ -136,6 +136,7 @@ body{margin:0;font-family:Inter,Arial,sans-serif;background:#f7f7f8;color:#11182
           <button id="adminChatSendBtn" class="action-btn primary">Send</button>
           <button id="tukaVoiceListenBtn" class="action-btn voice-btn" title="Use browser voice input">Mic</button>
           <button id="tukaVoiceSpeakBtn" class="action-btn voice-btn" title="Read Tuka replies aloud">Speak Off</button>
+          <button id="tukaVoiceTestBtn" class="action-btn voice-btn" title="Test browser voice output">Test Speak</button>
           <select id="tukaVoiceLang" class="voice-select" title="Voice language">
             <option value="mn-MN">MN</option>
             <option value="en-US">EN</option>
@@ -2189,6 +2190,15 @@ function bindTukaChatControls(){
       toggleTukaSpeechOutput();
     });
   }
+  const testSpeakBtn=document.getElementById("tukaVoiceTestBtn");
+  if(testSpeakBtn && !testSpeakBtn.dataset.bound){
+    testSpeakBtn.dataset.bound="true";
+    testSpeakBtn.addEventListener("click",function(e){
+      e.preventDefault();
+      if(!tukaVoiceState.speechEnabled) toggleTukaSpeechOutput();
+      speakTukaReply(tukaVoiceLang()==="mn-MN" ? "Тука дууны шалгалт хийж байна." : "Tuka voice test is running.");
+    });
+  }
   if(!document.body.dataset.voiceTranscriptBound){
     document.body.dataset.voiceTranscriptBound="true";
     document.addEventListener("tukaVoiceTranscript",function(e){
@@ -2217,6 +2227,18 @@ function toggleTukaVoiceInput(){
 }
 
 function toggleTukaSpeechOutput(){
+  if(!window.speechSynthesis || !window.SpeechSynthesisUtterance){
+    tukaVoiceState.speechEnabled=false;
+    const btn=document.getElementById("tukaVoiceSpeakBtn");
+    if(btn){
+      btn.textContent="Speak Unavailable";
+      btn.classList.remove("active");
+      btn.classList.add("warn-btn");
+      btn.title="This browser does not expose speechSynthesis. Use Chrome/Edge or Tuka Natural Duplex on 8998 for real voice.";
+    }
+    setTukaVoiceStatus("Voice output is not available in this browser. Use Chrome/Edge with browser speech, or open Natural Duplex on 127.0.0.1:8998 for real voice.","idle");
+    return;
+  }
   tukaVoiceState.speechEnabled=!tukaVoiceState.speechEnabled;
   const btn=document.getElementById("tukaVoiceSpeakBtn");
   if(btn){
@@ -2228,12 +2250,33 @@ function toggleTukaSpeechOutput(){
 }
 
 function speakTukaReply(text){
-  if(!tukaVoiceState.speechEnabled || !window.speechSynthesis) return;
+  if(!tukaVoiceState.speechEnabled) return;
+  if(!window.speechSynthesis || !window.SpeechSynthesisUtterance){
+    setTukaVoiceStatus("Tuka replied in text, but this browser cannot speak aloud because speechSynthesis is unavailable. Open 127.0.0.1:8998 Natural Duplex for real voice.","idle");
+    return;
+  }
   const utterance=new SpeechSynthesisUtterance(String(text || ""));
   utterance.lang=tukaVoiceLang();
   utterance.rate=1;
+  utterance.pitch=1;
+  utterance.volume=1;
+  utterance.onstart=function(){
+    setTukaVoiceStatus("Tuka voice output started.","idle");
+  };
+  utterance.onerror=function(event){
+    setTukaVoiceStatus("Voice output failed: "+(event.error || "browser speech error")+". Text reply remains available.","idle");
+  };
+  utterance.onend=function(){
+    setTukaVoiceStatus("Tuka voice output finished.","idle");
+  };
   window.speechSynthesis.cancel();
+  try{ window.speechSynthesis.resume(); }catch(e){}
   window.speechSynthesis.speak(utterance);
+  window.setTimeout(function(){
+    if(!window.speechSynthesis.speaking && !window.speechSynthesis.pending){
+      setTukaVoiceStatus("Voice output did not start. Browser speech may be muted, blocked, or unsupported here. Use Chrome/Edge audio output or Natural Duplex on 127.0.0.1:8998.","idle");
+    }
+  },1000);
 }
 
 function normalizeTukaConversation(text){
