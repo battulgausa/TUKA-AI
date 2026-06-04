@@ -31,6 +31,12 @@ from tools.tuka_core_packs_visibility_v1 import (
     registry as core_packs_registry,
     verify_core_packs_visibility,
 )
+from tools.tuka_marketing_intelligence_platform_v1 import (
+    MarketingPlatformRequest,
+    registry as marketing_platform_registry,
+    run_platform_demo,
+    verify_marketing_intelligence_platform,
+)
 
 app = FastAPI(title="Tuka Admin/Worker API")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -84,6 +90,21 @@ class MarketingIntelligenceReq(BaseModel):
         "public_trend_data",
         "official_platform_api",
         "search_engine_public_data",
+    ]
+    competitor_urls: list[str] = []
+
+
+class MarketingPlatformReq(BaseModel):
+    topic: str = "Solar energy Mongolia"
+    brand: str = "Tuka"
+    region: str = "Mongolia"
+    language: str = "mn"
+    goal: str = "Generate a privacy-first marketing intelligence report"
+    consent_granted: bool = True
+    data_sources: list[str] = [
+        "public_web_data",
+        "public_search_data",
+        "user_provided_data",
     ]
     competitor_urls: list[str] = []
 
@@ -359,6 +380,31 @@ def marketing_intelligence_demo(req: MarketingIntelligenceReq):
         competitor_urls=req.competitor_urls,
     )
     return run_marketing_mvp(request)
+
+
+@app.get("/marketing-platform/status")
+def marketing_platform_status():
+    return marketing_platform_registry()
+
+
+@app.get("/marketing-platform/verify")
+def marketing_platform_verify():
+    return verify_marketing_intelligence_platform()
+
+
+@app.post("/marketing-platform/demo")
+def marketing_platform_demo(req: MarketingPlatformReq):
+    request = MarketingPlatformRequest(
+        topic=req.topic,
+        brand=req.brand,
+        region=req.region,
+        language=req.language,
+        goal=req.goal,
+        consent_granted=req.consent_granted,
+        data_sources=req.data_sources,
+        competitor_urls=req.competitor_urls,
+    )
+    return run_platform_demo(request)
 
 
 @app.get("/core-packs/status")
