@@ -2321,6 +2321,10 @@ function tukaPhase11ConversationReply(command){
     tukaConversationState.lastIntent="language_english";
     return "Yes. I can speak and understand English. You can talk to me in English or Mongolian, and I will answer in the language you use.";
   }
+  if(hasAny(["can you talk to me","talk to me","can you talk","will you talk","speak to me","talk with me","can we talk","надтай ярь","надтай ярьж","надтай ярих","чи надтай ярь","чи надтай ярьж","ярилцаж чадах","ярилцъя","яриач"])){
+    tukaConversationState.lastIntent="voice_talk";
+    return "Тийм ээ, би надтай ярьж байгаа таны text эсвэл voice transcript-д хариулж чадна. Дуугаар сонсох бол Speak On эсвэл Test Speak дарж шалгаарай. Хэрэв browser дуу гаргахгүй бол Natural Duplex 8998 voice UI-г ашиглана.";
+  }
   if(hasAny(["англиар ярьдаг","англи хэлээр ярьдаг","англи хэл ойлгох","англи хэл"])){
     tukaConversationState.lastIntent="language_english";
     return "Тийм ээ, би англиар ярьж, бичиж ойлгоно. Та англиар асуувал англиар, монголоор асуувал монголоор хариулна.";
@@ -2329,7 +2333,7 @@ function tukaPhase11ConversationReply(command){
     tukaConversationState.lastIntent="language_mongolian";
     return "Yes. I can speak Mongolian. MongolCore is installed so I can understand Mongolian questions and answer naturally in Mongolian.";
   }
-  if(isExact(["чи ярьдаг уу","ярьдаг уу","чи ярьж чаддаг уу","чи ярьж чадах уу"])){
+  if(isExact(["чи ярьдаг уу","ярьдаг уу","чи ярьж чаддаг уу","чи ярьж чадах уу","чи ярьж чадах уу надтай","надтай ярьж чадах уу"])){
     tukaConversationState.lastIntent="voice_language";
     return "Тийм ээ, би ярьж чадна. Text-ээр хариулна, мөн Speak On үед browser-ийн дуугаар уншиж өгнө. Та монголоор эсвэл англиар асууж болно.";
   }
@@ -2368,6 +2372,10 @@ function tukaPhase11ConversationReply(command){
   if(hasAny(["баярлалаа","thanks","thank you"])){
     tukaConversationState.lastIntent="thanks";
     return "Зүгээр ээ. Тука бэлэн байна. Дараагийн command эсвэл асуултаа text-ээр бичиж эсвэл Mic-ээр хэлж болно.";
+  }
+  if((c.length < 28 && hasAny(["mongon","morgon","хайлаад","хайла","алаг","дорский","дорски"])) || hasAny(["буруу сонс","буруу бичигд","wrong transcript","stt wrong"])){
+    tukaConversationState.lastIntent="transcript_clarify";
+    return "Би таны хэлснийг буруу сонссон байж магадгүй. Та дахин нэг удаа арай тод хэлэх үү, эсвэл text-ээр бичээд өгвөл би шууд хариулъя.";
   }
   if(hasAny(["сайн уу тэнд байна уу","are you there","чи байна уу"])){
     tukaConversationState.lastIntent="presence";
@@ -4852,6 +4860,9 @@ document.addEventListener("DOMContentLoaded",function(){
     }
     else if(c.includes("speak english") || c.includes("do you speak english") || c.includes("can you speak english") || c.includes("english хэл") || c.includes("english yaridag")) {
       reply = "Yes. I can speak and understand English. You can talk to me in English or Mongolian, and I will answer in the language you use.";
+    }
+    else if(c.includes("can you talk to me") || c.includes("talk to me") || c.includes("can you talk") || c.includes("speak to me") || c.includes("talk with me") || c.includes("can we talk") || c.includes("надтай ярь") || c.includes("надтай ярьж") || c.includes("ярилцаж чадах") || c.includes("яриач")) {
+      reply = "Тийм ээ, би тантай ярилцаж чадна. Text болон Mic transcript-ээр таны хэлснийг авч хариулна. Дуугаар сонсох бол Speak On эсвэл Test Speak дарж шалгаарай; browser дуу гаргахгүй бол Natural Duplex 8998-г ашиглана.";
     }
     else if(c.includes("англиар ярьдаг") || c.includes("англи хэлээр ярьдаг") || c.includes("англи хэл ойлгох") || c.includes("англи хэл") || c.includes("чи англиар")) {
       reply = "Тийм ээ, би англиар ярьж, бичиж ойлгоно. Та англиар асуувал англиар, монголоор асуувал монголоор хариулна.";
