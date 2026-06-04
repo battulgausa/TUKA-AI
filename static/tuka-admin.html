@@ -104,6 +104,7 @@ body{margin:0;font-family:Inter,Arial,sans-serif;background:#f7f7f8;color:#11182
     <button class="nav-btn" data-page="quantum-shield">Quantum Shield</button>
     <button class="nav-btn" data-page="voice-search-persona">Voice Search Pack</button>
     <button class="nav-btn" data-page="personaplex-natural">Natural Duplex</button>
+    <button class="nav-btn" data-page="personaplex-diagnostics">PersonaPlex Diag</button>
     <button class="nav-btn" data-page="mongolcore">MongolCore</button>
     <button class="nav-btn" data-page="codeforge">CodeForge</button>
     <button class="nav-btn" data-page="settings">Settings</button>
@@ -1833,6 +1834,7 @@ Caveat: Voice Search Pack installs governed adapter contracts only. It does not 
           </div>
           <div class="actions">
             <button class="action-btn primary" onclick="runPersonaPlexNaturalVerify()">Check Natural Duplex</button>
+            <button class="action-btn" onclick="openTukaPage('personaplex-diagnostics')">PersonaPlex Diagnostics</button>
             <button class="action-btn" onclick="window.open('http://127.0.0.1:8998/','_blank')">Open Local Voice UI</button>
             <button class="action-btn" onclick="openTukaPage('phase11-voice')">Phase 11 Voice</button>
             <button class="action-btn" onclick="openTukaPage('ai-connectors')">AI Connectors</button>
@@ -1861,6 +1863,45 @@ External branding hidden from user workflow
 Admin + Guardrail + Judge required
 
 Caveat: Tuka Natural Duplex uses the local PersonaPlex runtime as a governed voice surface. The Admin Console can check readiness and open the local voice UI, but live microphone/audio use stays under Admin control and should not upload private audio or bypass governance.</div>
+        </div>
+      </div>
+
+      <div id="page-personaplex-diagnostics" class="page">
+        <div class="section">
+          <div class="section-title">PersonaPlex Diagnostics / Tuka Natural Duplex Bridge</div>
+          <div class="mini-grid">
+            <div class="card"><div class="card-label">Bridge</div><div class="card-value good" id="personaDiagBridgeCard">CHECK</div></div>
+            <div class="card"><div class="card-label">Local Server</div><div class="card-value locked" id="personaDiagServerCard">8998</div></div>
+            <div class="card"><div class="card-label">CUDA</div><div class="card-value locked" id="personaDiagCudaCard">CHECK</div></div>
+            <div class="card"><div class="card-label">Safety</div><div class="card-value locked">FAIL CLOSED</div></div>
+          </div>
+          <div class="actions">
+            <button class="action-btn primary" onclick="runPersonaPlexDiagnostics()">Run Diagnostics</button>
+            <button class="action-btn" onclick="runPersonaPlexBridgeContract()">Bridge Contract</button>
+            <button class="action-btn" onclick="runPersonaPlexDiagnosticsVerify()">Run Verify</button>
+            <button class="action-btn" onclick="openTukaPage('personaplex-natural')">Natural Duplex</button>
+            <button class="action-btn" onclick="window.open('http://127.0.0.1:8998/','_blank')">Open 8998</button>
+          </div>
+          <div class="status-box" id="personaPlexDiagnosticsStatus">Not checked yet. This diagnostics page verifies Tuka routes, local 8998 server, GPU/CUDA, venv, HF token presence by length only, and fail-closed safety.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Diagnostics Results</div>
+          <div class="log-box" id="personaPlexDiagnosticsResults">Click Run Diagnostics.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">PowerShell Quick Check</div>
+          <div class="log-box">cd C:\Users\battu\Tuka
+Invoke-WebRequest http://127.0.0.1:8890/personaplex/status | Select-Object -ExpandProperty Content
+Invoke-WebRequest http://127.0.0.1:8890/personaplex/bridge-contract | Select-Object -ExpandProperty Content
+Invoke-WebRequest http://127.0.0.1:8890/personaplex/diagnostics | Select-Object -ExpandProperty Content
+netstat -ano | findstr :8998
+nvidia-smi
+C:\Users\battu\Tuka\.venv_personaplex\Scripts\python.exe -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'NO CUDA')"
+
+Start local voice server:
+$env:NO_TORCH_COMPILE="1"; $env:TORCHDYNAMO_DISABLE="1"; C:\Users\battu\Tuka\.venv_personaplex\Scripts\python.exe -m moshi.server --port 8998</div>
         </div>
       </div>
 
@@ -4335,6 +4376,99 @@ async function runPersonaPlexNaturalVerify(){
   if(box) box.textContent=lines.join("\n");
 }
 
+async function runPersonaPlexDiagnostics(){
+  const status=document.getElementById("personaPlexDiagnosticsStatus");
+  const box=document.getElementById("personaPlexDiagnosticsResults");
+  const bridgeCard=document.getElementById("personaDiagBridgeCard");
+  const serverCard=document.getElementById("personaDiagServerCard");
+  const cudaCard=document.getElementById("personaDiagCudaCard");
+  if(status) status.textContent="Running PersonaPlex diagnostics...";
+  if(box) box.textContent="";
+
+  const diag=await phase0FetchJson("/personaplex/diagnostics");
+  const bridge=await phase0FetchJson("/bridge/status");
+  const data=diag.data || {};
+  const runtime=data.runtime || {};
+  const server=data.server || {};
+  const torch=data.torch_cuda || {};
+  const repo=data.repo || {};
+  const venv=data.venv || {};
+  const secrets=data.secrets || {};
+  const safety=data.safety || {};
+  const page=document.getElementById("page-personaplex-diagnostics");
+  const pageText=page ? page.textContent : "";
+
+  const checks=[
+    ["PersonaPlex Diagnostics page visible", !!page && pageText.includes("PersonaPlex Diagnostics")],
+    ["Diagnostics endpoint available", diag.ok && data.ok===true && data.admin_console_integrated===true],
+    ["Bridge route active", diag.ok && data.module==="tuka_personaplex_diagnostics_v1"],
+    ["Server 8998 status reported", server.port===8998 && server.url==="http://127.0.0.1:8998/" && typeof server.listening==="boolean"],
+    ["Repo status reported", typeof repo.exists==="boolean" && typeof repo.moshi_source_exists==="boolean"],
+    ["Venv status reported", typeof venv.exists==="boolean" && typeof venv.python==="string"],
+    ["HF token value hidden", secrets.hf_token_value_returned===false && typeof secrets.hf_token_length==="number"],
+    ["CUDA status reported", typeof torch.cuda_available==="boolean"],
+    ["Fail-closed when not live", runtime.live_ready===true || (runtime.blocked===true && Array.isArray(runtime.blockers) && runtime.blockers.length>0)],
+    ["No audio captured by diagnostics", safety.no_audio_capture_from_diagnostics===true && safety.no_audio_upload_from_diagnostics===true],
+    ["No external provider call", safety.no_external_provider_call===true && safety.no_paid_voice_usage===true],
+    ["Execution remains governed", bridge.ok && bridge.data && bridge.data.execution==="disabled"]
+  ];
+
+  const passed=checks.filter(x=>x[1]).length;
+  const total=checks.length;
+  const lines=checks.map(x=>(x[1]?"PASS ":"FAIL ")+x[0]);
+  lines.push("");
+  lines.push("Passed: "+passed+"/"+total);
+  lines.push("Live Ready: "+String(runtime.live_ready));
+  lines.push("Blockers: "+JSON.stringify(runtime.blockers || []));
+  lines.push("Server: "+JSON.stringify(server));
+  lines.push("CUDA: "+JSON.stringify(torch));
+  lines.push("Repo: "+JSON.stringify(repo));
+  lines.push("Venv: "+JSON.stringify(venv));
+  lines.push("Secrets: "+JSON.stringify(secrets));
+
+  if(bridgeCard){
+    bridgeCard.textContent=diag.ok ? "READY" : "FAIL";
+    bridgeCard.className="card-value "+(diag.ok ? "good" : "bad");
+  }
+  if(serverCard){
+    serverCard.textContent=server.listening ? "LIVE" : "OFF";
+    serverCard.className="card-value "+(server.listening ? "good" : "locked");
+  }
+  if(cudaCard){
+    cudaCard.textContent=torch.cuda_available ? "CUDA" : "NO CUDA";
+    cudaCard.className="card-value "+(torch.cuda_available ? "good" : "locked");
+  }
+  if(status){
+    status.textContent = passed===total
+      ? "PersonaPlex diagnostics PASSED. This means the bridge can truthfully report live/off state; voice is live only if server 8998 is LIVE."
+      : "PersonaPlex diagnostics incomplete. Failed checks: "+(total-passed);
+  }
+  if(box) box.textContent=lines.join("\n");
+}
+
+async function runPersonaPlexBridgeContract(){
+  const status=document.getElementById("personaPlexDiagnosticsStatus");
+  const box=document.getElementById("personaPlexDiagnosticsResults");
+  if(status) status.textContent="Loading PersonaPlex bridge contract...";
+  const contract=await phase0FetchJson("/personaplex/bridge-contract");
+  if(status) status.textContent=contract.ok ? "Bridge contract loaded." : "Bridge contract failed.";
+  if(box) box.textContent=JSON.stringify(contract.data || contract.error, null, 2);
+}
+
+async function runPersonaPlexDiagnosticsVerify(){
+  const status=document.getElementById("personaPlexDiagnosticsStatus");
+  const box=document.getElementById("personaPlexDiagnosticsResults");
+  if(status) status.textContent="Running PersonaPlex diagnostics verifier...";
+  const verify=await phase0FetchJson("/personaplex/verify");
+  const data=verify.data || {};
+  if(status){
+    status.textContent = verify.ok && data.ok
+      ? "PersonaPlex diagnostics verifier PASSED: "+data.passed+"/"+data.total
+      : "PersonaPlex diagnostics verifier FAILED or incomplete.";
+  }
+  if(box) box.textContent=JSON.stringify(data || verify.error, null, 2);
+}
+
 async function runMongolCoreVerify(){
   const status=document.getElementById("mongolCoreStatus");
   const box=document.getElementById("mongolCoreResults");
@@ -4457,6 +4591,7 @@ function buildTukaSearchIndex(){
   entries.push({page:"mode-engine",title:"mode engine / truthmode / redteam / execute / verify / strategy",type:"Chat",text:"mode engine prompt mode thinking mode truthmode redteam unlearn businesscoach startupmode attentionmode eli10 socrates firstprinciples human 80/20 execute verify strategy /mode-engine"});
   entries.push({page:"voice-search-persona",title:"voice search pack / voxforge / sourcelens / personacore",type:"Chat",text:"voice search pack voxforge sourcelens personacore elevenlabs perplexity personaplex engine persona voice grounded search /voicepack"});
   entries.push({page:"personaplex-natural",title:"natural duplex / local voice runtime",type:"Chat",text:"personaplex natural duplex tuka natural voice local voice runtime nvidia persona plex natf2 natm1 cuda 8998 /natural"});
+  entries.push({page:"personaplex-diagnostics",title:"personaplex diagnostics / bridge / 8998",type:"Voice",text:"personaplex diagnostics natural voice diagnostics bridge contract moshi server local voice server 8998 cuda gpu hf token venv /personaplex"});
   entries.push({page:"mongolcore",title:"mongolcore / tuka mn / nomadlens / homedata",type:"Chat",text:"mongolcore tuka mn tukamn nomadlens homedata egune mongolian native mongol ai local services no clone /mongolcore"});
   entries.push({page:"codeforge",title:"code repair / codex test",type:"Chat",text:"codeforge code forge coding verify codex test code repair /codeforge"});
   return entries;
@@ -4738,6 +4873,7 @@ document.addEventListener("DOMContentLoaded",function(){
     else if(c === "quantum shield" || c === "tuka quantum shield" || c === "net shield" || c === "trust channel" || c === "key rotation" || c === "qkd" || c === "quantum ready" || c === "/quantum-shield") { openTukaPage("quantum-shield"); reply = "Tuka QUANTUM SHIELD opened. Энэ нь hardware QKD гэж худал амлахгүй: tamper detection, signed trust channel, key rotation, bridge security, post-quantum crypto agility-г governed preview хэлбэрээр шалгана."; }
     else if(c === "run quantum shield" || c === "quantum shield verify" || c === "/quantum-shield-verify") { openTukaPage("quantum-shield"); try{ runQuantumShieldVerify(); }catch(e){} reply = "Quantum Shield verification эхэллээ. Hardware QKD, external provider, live key rotation, live crypto migration бүгд locked хэвээр."; }
     else if(c === "personaplex" || c === "natural duplex" || c === "tuka natural" || c === "tuka natural voice" || c === "local voice runtime" || c === "/natural") { openTukaPage("personaplex-natural"); reply = "Tuka Natural Duplex opened. Энэ нь PersonaPlex local voice runtime-ийг Тука Admin Console дотор readiness, CUDA, server status, governance gate-ээр шалгах хэсэг."; }
+    else if(c === "personaplex diagnostics" || c === "natural voice diagnostics" || c === "check personaplex" || c === "check 8998" || c === "/personaplex") { openTukaPage("personaplex-diagnostics"); try{ runPersonaPlexDiagnostics(); }catch(e){} reply = "PersonaPlex Diagnostics opened. Энэ нь Tuka bridge route, 8998 local voice server, CUDA/GPU, venv, HF token presence, no-audio/no-secret safety-г үнэнээр шалгана."; }
     else if(c === "voice search pack" || c === "voice pack" || c === "voxforge" || c === "sourcelens" || c === "personacore" || c === "elevenlabs" || c === "perplexity" || c === "engune" || c === "engine" || c === "/voicepack") { openTukaPage("voice-search-persona"); reply = "Voice Search Pack opened. VoxForge, SourceLens, and PersonaCore are installed as Tuka-native governed adapters. Live external calls, audio/query upload, paid cloud usage, and secret exposure remain blocked until Admin + Guardrail + Judge approve."; }
     else if(c === "mongolcore" || c === "tukamn" || c === "tuka mn" || c === "nomadlens" || c === "homedata" || c === "egune" || c === "egune ai" || c === "монгол хувилбар" || c === "/mongolcore") { openTukaPage("mongolcore"); reply = "MongolCore opened. This is Tuka's own Mongolian AI layer: native Mongolian conversation, TukaMN Voice, NomadLens local-service contracts, and HomeData Guard. It does not copy Egune brand, model weights, datasets, private APIs, prompts, product text, or UI identity."; }
     else if(c === "codeforge" || c === "code forge" || c === "coding verify" || c === "codex test" || c === "code repair" || c === "/codeforge") { openTukaPage("codeforge"); reply = "CodeForge opened. Run CodeForge Verify to check governed Codex-like coding workflow: repo scan, patch draft, AST/static checks, test/browser verify, repo patch skills, admin gates, rollback/audit, and no fake pass."; }

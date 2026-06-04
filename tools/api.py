@@ -43,6 +43,12 @@ from tools.tuka_mode_engine_v1 import (
     registry as mode_engine_registry,
     verify_mode_engine,
 )
+from tools.tuka_personaplex_diagnostics_v1 import (
+    bridge_contract as personaplex_bridge_contract,
+    run_diagnostics as run_personaplex_diagnostics,
+    status as personaplex_diagnostics_status,
+    verify as verify_personaplex_diagnostics,
+)
 
 app = FastAPI(title="Tuka Admin/Worker API")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -432,6 +438,26 @@ def mode_engine_verify():
 @app.post("/mode-engine/apply")
 def mode_engine_apply(req: ModeEngineReq):
     return apply_mode(ModeRequest(text=req.text, mode=req.mode, language=req.language))
+
+
+@app.get("/personaplex/status")
+def personaplex_status():
+    return personaplex_diagnostics_status()
+
+
+@app.get("/personaplex/diagnostics")
+def personaplex_diagnostics():
+    return run_personaplex_diagnostics()
+
+
+@app.get("/personaplex/bridge-contract")
+def personaplex_bridge_contract_route():
+    return personaplex_bridge_contract()
+
+
+@app.get("/personaplex/verify")
+def personaplex_verify():
+    return verify_personaplex_diagnostics()
 
 
 @app.get("/core-packs/status")
